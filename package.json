@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "postinstall": "lefthook install",
-    "check": "biome check --write --unsafe"
+    "check": "biome check --write --unsafe",
+    "db:schema": "pnpm --filter @ai-ticket/db db:generate && pnpm --filter @ai-ticket/db db:export"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
