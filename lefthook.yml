@@ -9,17 +9,15 @@ commit-msg:
     commitlint:
       run: pnpm dlx commitlint --edit $1
 
-# pre-commit:
-#   commands:
-#     # i18n-check:
-#     #   run: pnpm i18n
-#     biome-check:
-#       run: pnpm check {staged_files}
-#       stage_fixed: true
-#       exclude:
-#         - "*.{yml,yaml,md,toml,sql,html,png}"
-#         - ".gitignore"
-#         - ".env.*"
+pre-commit:
+  commands:
+    biome-check:
+      run: pnpm check {staged_files}
+      stage_fixed: true
+      exclude:
+        - "*.{yml,yaml,md,toml,sql,html,png}"
+        - ".gitignore"
+        - ".env.*"
 
 # pre-push:
 #   commands:

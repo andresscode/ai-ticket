@@ -2,9 +2,11 @@
   "name": "ai-ticket",
   "private": true,
   "scripts": {
-    "postinstall": "lefthook install"
+    "postinstall": "lefthook install",
+    "check": "biome check --write --unsafe"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.14",
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
     "lefthook": "^2.1.6"
