@@ -1,0 +1,27 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm dlx commitlint --edit $1
+
+# pre-commit:
+#   commands:
+#     # i18n-check:
+#     #   run: pnpm i18n
+#     biome-check:
+#       run: pnpm check {staged_files}
+#       stage_fixed: true
+#       exclude:
+#         - "*.{yml,yaml,md,toml,sql,html,png}"
+#         - ".gitignore"
+#         - ".env.*"
+
+# pre-push:
+#   commands:
+#     build:
+#       run: pnpm build
