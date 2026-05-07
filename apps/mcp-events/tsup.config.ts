@@ -7,11 +7,7 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  target: 'node24',
+  bundle: true,
   minify: false,
-  outExtension() {
-    return {
-      js: '.js',
-    }
-  },
+  noExternal: [/@ai-ticket\/.*/],
 })

@@ -1,4 +1,15 @@
 services:
+  mcp-events:
+    build:
+      context: .
+      dockerfile: apps/mcp-events/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/aiticket
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:16
     environment:

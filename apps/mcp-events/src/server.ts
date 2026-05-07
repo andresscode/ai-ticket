@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp'
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { tenantStorage } from './tenant-context'
 import { registerCheckAvailability } from './tools/check-availability'
 import { registerGetEvent } from './tools/get-event'
