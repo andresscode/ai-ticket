@@ -116,3 +116,23 @@ To inspect the database:
 ```bash
 docker exec -it ai-ticket-postgres-1 psql -U postgres -d aiticket -c "SELECT * FROM tenants;"
 ```
+
+### Testing MCP Servers
+
+Use the [MCP Inspector](https://github.com/modelcontextprotocol/inspector) to interactively call tools on any MCP server without the full orchestrator stack.
+
+Make sure the target MCP server is running locally (e.g. `pnpm dev` or run the app directly), then launch the inspector:
+
+```bash
+pnpx @modelcontextprotocol/inspector
+```
+
+This opens a browser UI at [localhost:6274](http://localhost:6274). Connect it to whichever server you want to test:
+
+| Server | URL |
+|---|---|
+| MCP Events | `http://localhost:3002/mcp` |
+| MCP Commerce | `http://localhost:3003/mcp` |
+| MCP Payments | `http://localhost:3004/mcp` |
+
+From the inspector you can browse available tools, supply arguments, and inspect the raw JSON responses — useful for verifying tool schemas and debugging before wiring a server into the orchestrator.
