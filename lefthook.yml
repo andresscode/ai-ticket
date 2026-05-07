@@ -18,8 +18,3 @@ pre-commit:
         - "*.{yml,yaml,md,toml,sql,html,png}"
         - ".gitignore"
         - ".env.*"
-
-# pre-push:
-#   commands:
-#     build:
-#       run: pnpm build
