@@ -35,6 +35,7 @@ postgres/    # schema.sql (generated), seed.sql
 - Each app manages its own db connection — `packages/db` exports schema/types only, never connects
 - MCP servers are the only callers of the database — orchestrator never queries DB directly
 - Docker Compose is for infra only during dev (`postgres`, `stripe-mock`, `phoenix`) — apps run locally with hot reload
+- Never run `docker compose` commands — the user manages the Docker lifecycle manually
 
 ## Port Assignments
 

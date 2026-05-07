@@ -2,23 +2,39 @@
 
 A conversational AI assistant that lets a live-event fan buy tickets through natural language chat — browse events, pick seats, and complete payment in a single conversation.
 
-## Prerequisites
+---
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+## Running the Demo
+
+### Step 1 — Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 - An OpenAI API key (or Vercel AI Gateway token)
 
-## Quick Start
+### Step 2 — Configure your API key
 
 ```bash
 git clone https://github.com/your-username/ai-ticket
 cd ai-ticket
-cp .env.example .env        # add your LLM_PROVIDER_API_KEY
+cp .env.example .env
+```
+
+Open `.env` and set:
+
+| Variable | Value |
+|---|---|
+| `LLM_PROVIDER` | `openai` or `vercel` |
+| `LLM_PROVIDER_API_KEY` | Your API key |
+
+### Step 3 — Start the stack
+
+```bash
 docker compose up
 ```
 
-Open [localhost:3000](http://localhost:3000).
+Wait for all services to report healthy, then open [localhost:3000](http://localhost:3000).
 
-## Demo
+### Step 4 — Run the happy path
 
 1. Pick a tenant — **Jazz Gallery** or **Empire Arts**
 2. Type: *"What's on this weekend?"*
@@ -27,16 +43,33 @@ Open [localhost:3000](http://localhost:3000).
 5. A payment modal appears — click **Pay Now**
 6. You receive a booking confirmation number
 
-To watch the full trace waterfall for any request, open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed.
+Total time: ~60 seconds. Every layer of the stack fires.
 
-## LLM Provider
+### Step 5 — Watch the trace
 
-Set these two variables in `.env`:
+Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, and latency.
 
-| Variable | Value |
+### Try different seat sections
+
+Each event has inventory across up to four sections. Use these prompts to explore them:
+
+| What you want to see | Example prompt |
 |---|---|
-| `LLM_PROVIDER` | `openai` or `vercel` |
-| `LLM_PROVIDER_API_KEY` | Your API key |
+| Front (closest to stage) | *"Two tickets to the jazz show, as close to the stage as possible"* |
+| Back (affordable floor) | *"Two tickets to Saturday's show, somewhere in the back"* |
+| Balcony (budget) | *"Two tickets under $40 each, balcony is fine"* |
+| VIP | *"One VIP ticket to opening night"* |
+| Budget cap across sections | *"Two tickets to Hamlet, total budget under $100"* |
+| Let the AI decide | *"Two tickets to the jazz show, surprise me"* |
+
+| Section | Position | Price range |
+|---|---|---|
+| `front` | Closest to the stage | $$$ |
+| `back` | Rear of the floor | $$ |
+| `balcony` | Elevated rear gallery | $ |
+| `vip` | Side-stage reserved | $$$$ |
+
+> **If events appear in the past:** the Postgres volume is stale. Run `docker compose down -v && docker compose up` to wipe and re-seed — event dates are always set relative to first boot.
 
 ---
 
