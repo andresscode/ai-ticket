@@ -1,6 +1,7 @@
 {
   "name": "ai-ticket",
   "private": true,
+  "type": "module",
   "scripts": {
     "postinstall": "lefthook install",
     "check": "biome check --write --unsafe"
