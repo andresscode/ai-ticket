@@ -21,6 +21,24 @@ services:
     depends_on:
       - postgres
 
+  mcp-payments:
+    build:
+      context: .
+      dockerfile: apps/mcp-payments/Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/aiticket
+      STRIPE_MOCK_URL: http://stripe-mock:12111
+    depends_on:
+      - postgres
+      - stripe-mock
+
+  stripe-mock:
+    image: stripe/stripe-mock:latest
+    ports:
+      - "12111:12111"
+
   postgres:
     image: postgres:16
     environment:
