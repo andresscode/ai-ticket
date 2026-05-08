@@ -54,6 +54,46 @@ importers:
         specifier: ^2.1.6
         version: 2.1.6
 
+  apps/mcp-commerce:
+    dependencies:
+      '@ai-ticket/db':
+        specifier: 'workspace:'
+        version: link:../../packages/db
+      '@modelcontextprotocol/sdk':
+        specifier: 'catalog:'
+        version: 1.29.0(zod@3.25.76)
+      dotenv:
+        specifier: 'catalog:'
+        version: 17.4.2
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)(postgres@3.4.9)
+      postgres:
+        specifier: 'catalog:'
+        version: 3.4.9
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
+    devDependencies:
+      '@ai-ticket/tsconfig':
+        specifier: 'workspace:'
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.2
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.14)(tsx@4.21.0)(typescript@6.0.3)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(@types/node@24.12.2)(jiti@2.6.1)(tsx@4.21.0)
+
   apps/mcp-events:
     dependencies:
       '@ai-ticket/db':

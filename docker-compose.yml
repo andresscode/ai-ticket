@@ -10,6 +10,17 @@ services:
     depends_on:
       - postgres
 
+  mcp-commerce:
+    build:
+      context: .
+      dockerfile: apps/mcp-commerce/Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/aiticket
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:16
     environment:
