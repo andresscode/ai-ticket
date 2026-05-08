@@ -133,3 +133,29 @@ export const orderItems = pgTable(
     index('order_items_order_idx').on(t.orderId),
   ],
 )
+
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'pending',
+  'succeeded',
+  'failed',
+  'cancelled',
+])
+
+export const payments = pgTable(
+  'payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => orders.id),
+    stripePaymentIntentId: text('stripe_payment_intent_id').notNull().unique(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull().default('usd'),
+    status: paymentStatusEnum('status').notNull().default('pending'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    // complete-payment: WHERE order_id = ?
+    index('payments_order_idx').on(t.orderId),
+  ],
+)

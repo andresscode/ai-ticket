@@ -1,5 +1,6 @@
 CREATE TYPE "public"."event_status" AS ENUM('active', 'cancelled', 'sold_out');
 CREATE TYPE "public"."order_status" AS ENUM('pending', 'confirmed', 'cancelled');
+CREATE TYPE "public"."payment_status" AS ENUM('pending', 'succeeded', 'failed', 'cancelled');
 CREATE TYPE "public"."seat_section" AS ENUM('front', 'back', 'balcony', 'vip');
 CREATE TYPE "public"."seat_status" AS ENUM('available', 'reserved', 'sold');
 CREATE TABLE "events" (
@@ -44,6 +45,17 @@ CREATE TABLE "orders" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 
+CREATE TABLE "payments" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"order_id" uuid NOT NULL,
+	"stripe_payment_intent_id" text NOT NULL,
+	"amount_cents" integer NOT NULL,
+	"currency" text DEFAULT 'usd' NOT NULL,
+	"status" "payment_status" DEFAULT 'pending' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "payments_stripe_payment_intent_id_unique" UNIQUE("stripe_payment_intent_id")
+);
+
 CREATE TABLE "tenants" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
@@ -59,7 +71,9 @@ ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_orders_id_fk" FOR
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_inventory_id_inventory_id_fk" FOREIGN KEY ("inventory_id") REFERENCES "public"."inventory"("id") ON DELETE no action ON UPDATE no action;
 ALTER TABLE "orders" ADD CONSTRAINT "orders_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE no action ON UPDATE no action;
 ALTER TABLE "orders" ADD CONSTRAINT "orders_event_id_events_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE no action ON UPDATE no action;
 CREATE INDEX "events_tenant_starts_at_idx" ON "events" USING btree ("tenant_id","starts_at");
 CREATE INDEX "inventory_event_status_idx" ON "inventory" USING btree ("event_id","status");
 CREATE INDEX "order_items_order_idx" ON "order_items" USING btree ("order_id");
 CREATE INDEX "orders_tenant_idx" ON "orders" USING btree ("tenant_id");
+CREATE INDEX "payments_order_idx" ON "payments" USING btree ("order_id");
