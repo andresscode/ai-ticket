@@ -1,0 +1,28 @@
+[project]
+name = "orchestrator"
+version = "0.1.0"
+description = "AI Ticket orchestration layer — LangGraph supervisor + specialist agents over MCP"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.3",
+  "pytest-asyncio>=1.3.0",
+  "ruff>=0.15.12",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

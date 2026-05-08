@@ -10,6 +10,7 @@
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
     "check": "biome check --write --unsafe",
+    "check:py": "pnpm --filter @ai-ticket/orchestrator check",
     "db:schema": "pnpm --filter @ai-ticket/db db:generate && pnpm --filter @ai-ticket/db db:export"
   },
   "devDependencies": {

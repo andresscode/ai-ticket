@@ -18,3 +18,8 @@ pre-commit:
         - "*.{yml,yaml,md,toml,sql,html,png}"
         - ".gitignore"
         - "**/.env.*"
+    ruff:
+      glob: "apps/orchestrator/**/*.py"
+      root: "apps/orchestrator/"
+      run: uv run ruff format {staged_files} && uv run ruff check --fix {staged_files}
+      stage_fixed: true

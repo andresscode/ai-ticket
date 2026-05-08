@@ -1,0 +1,10 @@
+{
+  "name": "@ai-ticket/orchestrator",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "check": "uv run ruff format . && uv run ruff check --fix .",
+    "test": "uv run pytest",
+    "clean": "rm -rf .pytest_cache .ruff_cache"
+  }
+}
