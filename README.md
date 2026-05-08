@@ -1,6 +1,6 @@
 # AI Ticket
 
-A conversational AI assistant that lets a live-event fan buy tickets through natural language chat — browse events, pick seats, and complete payment in a single conversation.
+A conversational AI assistant that lets a live-event fan buy tickets through natural language chat — browse events, pick seats by section, and complete payment in a single conversation.
 
 ---
 
@@ -9,7 +9,7 @@ A conversational AI assistant that lets a live-event fan buy tickets through nat
 ### Step 1 — Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- An OpenAI API key (or Vercel AI Gateway token)
+- An OpenAI or Vercel AI Gateway API key
 
 ### Step 2 — Configure your API key
 
@@ -37,8 +37,8 @@ Wait for all services to report healthy, then open [localhost:3000](http://local
 ### Step 4 — Run the happy path
 
 1. Pick a tenant — **Jazz Gallery** or **Empire Arts**
-2. Type: *"What's on this weekend?"*
-3. Type: *"Two tickets to the Friday jazz show, seats in the back"*
+2. Type: *"What's on this week?"*
+3. Type: *"Two tickets to the Friday jazz show, seats in the back, under $80 total"*
 4. Confirm the seat suggestion
 5. A payment modal appears — click **Pay Now**
 6. You receive a booking confirmation number
@@ -47,7 +47,7 @@ Total time: ~60 seconds. Every layer of the stack fires.
 
 ### Step 5 — Watch the trace
 
-Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, and latency.
+Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, cost, and latency.
 
 ### Try different seat sections
 
@@ -107,8 +107,11 @@ Schema source of truth: `packages/db/src/schema.ts`
 After any schema change:
 
 ```bash
-pnpm db:schema                                        # generate migration + export schema.sql
-docker compose down -v && docker compose up postgres  # wipe volume + re-seed
+# generate migration + export schema.sql
+pnpm db:schema
+
+# wipe volume + re-seed
+docker compose down -v && docker compose up postgres
 ```
 
 To inspect the database:
