@@ -23,3 +23,10 @@ pre-commit:
       root: "apps/orchestrator/"
       run: uv run ruff format {staged_files} && uv run ruff check --fix {staged_files}
       stage_fixed: true
+
+pre-push:
+  commands:
+    build:
+      run: pnpm build
+    # test:
+    #   run: pnpm test
