@@ -18,6 +18,7 @@ pre-commit:
         - "*.{yml,yaml,md,toml,sql,html,png}"
         - ".gitignore"
         - "**/.env.*"
+        - "apps/orchestrator/*"
     ruff:
       glob: "apps/orchestrator/**/*.py"
       root: "apps/orchestrator/"
