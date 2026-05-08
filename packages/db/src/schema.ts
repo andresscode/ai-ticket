@@ -85,3 +85,51 @@ export const inventory = pgTable(
     index('inventory_event_status_idx').on(t.eventId, t.status),
   ],
 )
+
+export const orderStatusEnum = pgEnum('order_status', [
+  'pending',
+  'confirmed',
+  'cancelled',
+])
+
+export const orders = pgTable(
+  'orders',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    userId: text('user_id').notNull(),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => events.id),
+    status: orderStatusEnum('status').notNull().default('pending'),
+    // Sum of seat prices captured at order time
+    totalCents: integer('total_cents').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    // get-order tenant isolation + future list-orders queries
+    index('orders_tenant_idx').on(t.tenantId),
+  ],
+)
+
+export const orderItems = pgTable(
+  'order_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orderId: uuid('order_id')
+      .notNull()
+      .references(() => orders.id),
+    inventoryId: uuid('inventory_id')
+      .notNull()
+      .references(() => inventory.id),
+    // Price snapshot — preserved even if inventory price changes later
+    priceCents: integer('price_cents').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    // get-order: WHERE order_id = ? (fetch items for an order)
+    index('order_items_order_idx').on(t.orderId),
+  ],
+)
