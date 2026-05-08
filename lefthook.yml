@@ -17,4 +17,4 @@ pre-commit:
       exclude:
         - "*.{yml,yaml,md,toml,sql,html,png}"
         - ".gitignore"
-        - ".env.*"
+        - "**/.env.*"
