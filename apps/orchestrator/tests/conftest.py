@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-# `src/` lives next to this tests/ dir; pyproject puts it on pytest's pythonpath
-# already, but we re-assert here for editor / direct-pytest invocations.
+# Re-assert src/ on sys.path for editor / direct-pytest invocations that bypass
+# pyproject's pythonpath setting.
 _SRC = Path(__file__).resolve().parent.parent / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
@@ -14,9 +14,6 @@ from config import Settings  # noqa: E402
 
 @pytest.fixture
 def settings() -> Settings:
-    # All fields passed explicitly — pydantic-settings prioritizes constructor
-    # kwargs over env / .env values, so tests are hermetic regardless of what
-    # apps/orchestrator/.env contains.
     return Settings(
         llm_provider="openai",
         llm_provider_api_key="sk-test",

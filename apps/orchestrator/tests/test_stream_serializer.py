@@ -1,10 +1,3 @@
-"""Translate synthetic LangGraph chunks into typed SSE events.
-
-These tests don't touch a real graph or LLM — they feed crafted chunks into
-``translate_chunks`` and assert the SSE wire output. Same intent as the MCP
-server tests: hand the unit fake collaborators, verify the unit's logic.
-"""
-
 import json
 from collections.abc import AsyncIterator
 from types import SimpleNamespace
@@ -22,7 +15,6 @@ async def _gen(items: list[Any]) -> AsyncIterator[Any]:
 
 
 async def _collect(it: AsyncIterator[str]) -> list[dict[str, Any]]:
-    """Read SSE-formatted strings and parse the JSON payload from each."""
     out: list[dict[str, Any]] = []
     async for line in it:
         prefix, _, json_part = line.partition("data: ")
@@ -41,7 +33,6 @@ async def test_token_event_from_aimessage_chunk():
 async def test_message_chunk_with_empty_content_is_skipped():
     chunk = ((), "messages", (AIMessageChunk(content=""), {}))
     events = await _collect(translate_chunks(_gen([chunk]), thread_id="t1"))
-    # Only the terminal done event survives.
     assert [e["type"] for e in events] == ["done"]
 
 
@@ -103,7 +94,6 @@ async def test_error_event_on_exception():
 
 
 async def test_unknown_chunk_shape_is_ignored():
-    # Strings, ints, malformed tuples — translator skips them, still emits done.
     events = await _collect(
         translate_chunks(_gen(["nope", 42, ("only_one_field",)]), thread_id="t1")
     )
@@ -113,9 +103,7 @@ async def test_unknown_chunk_shape_is_ignored():
 @pytest.mark.parametrize(
     "shape",
     [
-        # Two-element shape: (mode, data)
         ("messages", (AIMessageChunk(content="hi"), {})),
-        # Three-element shape: (namespace, mode, data) — what subgraphs=True emits
         (("supervisor:abc",), "messages", (AIMessageChunk(content="hi"), {})),
     ],
 )

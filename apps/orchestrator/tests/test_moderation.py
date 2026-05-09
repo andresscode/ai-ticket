@@ -1,10 +1,3 @@
-"""Moderation tests — both providers, mocked at the OpenAI SDK seam.
-
-We don't care about HTTP wire format here; we care that each Moderator
-implementation pulls the right field out of the response shape and that
-``build_moderator`` dispatches on ``LLM_PROVIDER``.
-"""
-
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -62,9 +55,8 @@ async def test_gateway_safeguard_flagged_false(mock_openai_cls):
 
 @patch("moderation.AsyncOpenAI")
 async def test_gateway_safeguard_unparseable_fails_closed(mock_openai_cls):
-    """Unparseable safeguard output must be treated as flagged — never silently
-    pass risky input through because the classifier emitted prose instead of
-    JSON."""
+    # Unparseable classifier output must be treated as flagged — never silently
+    # pass risky input through.
     mock_openai_cls.return_value.chat.completions.create = AsyncMock(
         return_value=_chat_response("not even json {{")
     )

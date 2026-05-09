@@ -1,20 +1,3 @@
-"""Provider-aware content moderation.
-
-Two implementations dispatch on `LLM_PROVIDER`:
-
-- ``openai`` — native ``/v1/moderations`` endpoint with ``omni-moderation-latest``,
-  hits ``api.openai.com`` directly with the same key the chat client uses.
-
-- ``vercel`` — Vercel AI Gateway's ``openai/gpt-oss-safeguard-20b`` safeguard
-  model. The gateway does not proxy ``/v1/moderations``; the safeguard model is
-  a chat-completion model trained for content classification, so we call it via
-  ``/v1/chat/completions`` with a system prompt that constrains output to a
-  single ``{"flagged": bool}`` JSON object.
-
-Both implementations expose the same `Moderator.is_flagged(text) -> bool`
-contract so the guards don't have to know which one is wired up.
-"""
-
 import json
 from typing import Protocol
 
@@ -35,8 +18,6 @@ class Moderator(Protocol):
 
 
 class OpenAIModerator:
-    """Native OpenAI moderation against api.openai.com directly."""
-
     def __init__(self, api_key: str) -> None:
         self._client = AsyncOpenAI(api_key=api_key, base_url=OPENAI_DIRECT_URL)
 
@@ -49,7 +30,8 @@ class OpenAIModerator:
 
 
 class GatewaySafeguardModerator:
-    """Vercel AI Gateway moderation via openai/gpt-oss-safeguard-20b."""
+    """The gateway does not proxy /v1/moderations; gpt-oss-safeguard-20b is a
+    chat-completion model that we constrain to JSON output and parse."""
 
     def __init__(self, api_key: str, base_url: str) -> None:
         self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
@@ -67,8 +49,7 @@ class GatewaySafeguardModerator:
         try:
             return bool(json.loads(content).get("flagged", False))
         except (json.JSONDecodeError, AttributeError):
-            # Couldn't parse — fail closed: treat as flagged so unparseable
-            # safeguard output never silently allows risky input through.
+            # Fail closed — never silently pass unparseable safeguard output.
             return True
 
 

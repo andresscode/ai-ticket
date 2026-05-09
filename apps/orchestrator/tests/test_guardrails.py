@@ -1,11 +1,3 @@
-"""Guardrail tests — input + output, with the moderation call mocked.
-
-The state shape we feed in matches what the wrapper graph passes to each guard
-node at runtime. We assert on the state update each guard returns; the graph's
-conditional edge (which routes to END when ``blocked=True``) is exercised by
-the integration smoke, not here.
-"""
-
 from unittest.mock import AsyncMock, patch
 
 from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage
@@ -39,9 +31,6 @@ async def test_input_guard_blocks_and_injects_refusal(settings: Settings):
 
 @patch("guardrails.input_guard.is_flagged", new=AsyncMock(return_value=True))
 async def test_input_guard_no_human_message_passes(settings: Settings):
-    """If somehow we end up at the input guard with no HumanMessage to check
-    (shouldn't happen in practice), the guard is a no-op rather than blocking.
-    """
     guard = make_input_guard(settings)
     state = GraphState(messages=[AIMessage(content="ai-only history")])
     assert await guard(state) == {}
@@ -70,8 +59,6 @@ async def test_output_guard_replaces_flagged_ai_message(settings: Settings):
 
 @patch("guardrails.output_guard.is_flagged", new=AsyncMock(return_value=True))
 async def test_output_guard_skips_when_last_message_is_not_ai(settings: Settings):
-    """The output guard only fires on AIMessage tails — if the last message is
-    a HumanMessage (e.g. mid-loop), it's a no-op."""
     guard = make_output_guard(settings)
     state = GraphState(messages=[HumanMessage(content="still talking")])
     assert await guard(state) == {}

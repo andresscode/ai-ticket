@@ -1,10 +1,3 @@
-"""HTTP request bodies and SSE event types — orchestrator-internal only.
-
-The BFF parses the SSE event JSON with its own locally-defined TS interfaces;
-there is no shared cross-language schema. If the wire shape here changes, both
-the BFF parser and the UI's consuming components need to be updated.
-"""
-
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field

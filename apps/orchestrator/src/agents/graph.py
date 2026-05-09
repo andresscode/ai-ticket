@@ -32,11 +32,8 @@ async def build_graph(tenant_id: str, user_id: str, settings: Settings) -> Any:
         agents=[events_agent, commerce_agent, payment_agent],
         model=build_chat_model(settings, SUPERVISOR),
         prompt=SUPERVISOR_PROMPT,
-        # full_history (not last_message) so each specialist's tool calls and
-        # tool results stay in the shared conversation. Without this, IDs from
-        # list-events / create-order / init-payment vanish from the parent
-        # state, and downstream agents (or the same agent on a follow-up turn)
-        # have to re-list events to recover them.
+        # full_history keeps each specialist's tool calls + results in the
+        # shared conversation so downstream agents can read IDs from history.
         output_mode="full_history",
     ).compile(name="supervisor")
 
@@ -57,9 +54,8 @@ async def build_graph(tenant_id: str, user_id: str, settings: Settings) -> Any:
     return builder.compile(checkpointer=InMemorySaver())
 
 
-# Module-level cache so /hitl/resume reaches the same InMemorySaver the original
-# /chat created. Demo-scoped: lost on orchestrator restart (see notes/demo-brief.md
-# for the InMemorySaver tradeoff).
+# Cache lets /hitl/resume reach the same InMemorySaver /chat created.
+# Demo-scoped — lost on restart; see notes/demo-brief.md.
 _graph_cache: dict[tuple[str, str], Any] = {}
 
 

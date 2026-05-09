@@ -1,12 +1,3 @@
-"""Payment sub-graph — three nodes:
-
-    init_payment → hitl (interrupt for human approval) → complete_payment
-
-Each LLM step is a small create_agent bound to exactly one MCP tool. The interrupt()
-between init and complete is the demo's signature human-in-the-loop moment; it pauses
-the graph until the BFF resumes with Command(resume=...).
-"""
-
 import json
 from dataclasses import dataclass, field
 from typing import Annotated, Any
@@ -53,18 +44,9 @@ def _find_tool_result(messages: list[AnyMessage], tool_suffix: str) -> dict[str,
 
 
 def _parse_tool_content(content: Any) -> dict[str, Any]:
-    """Coerce a ToolMessage.content into a dict.
-
-    langchain-mcp-adapters surfaces an MCP tool's result in one of three shapes
-    depending on the version and what the tool returned:
-
-      - a dict (already parsed `structuredContent`)
-      - a JSON string (the joined text blocks)
-      - a list of content blocks: ``[{"type": "text", "text": "..."}]``
-
-    We accept all three. For the list shape we extract the first ``text`` block
-    and json-parse it.
-    """
+    # langchain-mcp-adapters surfaces tool results as a dict, a JSON string, or
+    # a list of MCP content blocks ([{"type": "text", "text": "..."}]) depending
+    # on the version. Handle all three.
     if isinstance(content, dict):
         return content
     if isinstance(content, str):

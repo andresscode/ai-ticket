@@ -1,13 +1,3 @@
-"""Translate LangGraph astream chunks to typed SSE-formatted strings.
-
-We use ``stream_mode=["messages", "updates"]`` and ``subgraphs=True`` so we get
-both token-level streaming (from inside the supervisor's specialist agents)
-and node-level updates (which carry tool calls and the HITL ``__interrupt__``
-payload). Each interesting chunk maps to one or more events from
-``models.api``; the BFF parses these and forwards into AI SDK's Data Stream
-Protocol.
-"""
-
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -51,7 +41,7 @@ async def translate_chunks(
 
 
 def _unpack(chunk: Any) -> tuple[str | None, Any]:
-    """Normalize ``(mode, data)`` and ``(namespace, mode, data)`` shapes."""
+    # astream yields (mode, data) without subgraphs and (namespace, mode, data) with.
     if isinstance(chunk, tuple):
         if len(chunk) == 2:
             return chunk[0], chunk[1]
