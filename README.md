@@ -47,7 +47,9 @@ Total time: ~60 seconds. Every layer of the stack fires.
 
 ### Step 5 — Watch the trace
 
-Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, cost, and latency.
+Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, and latency.
+
+> **Note on cost display:** Arize Phoenix requires per-model cost configuration to show token costs in traces. Not all models are pre-configured out of the box — you can add them under *Settings → AI Providers*. That said, this is optional setup and not something you need to do to evaluate the demo.
 
 ### Try different seat sections
 
