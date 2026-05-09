@@ -28,6 +28,12 @@
       "semicolons": "asNeeded"
     }
   },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
+  },
   "assist": {
     "enabled": true,
     "actions": {
@@ -35,5 +41,17 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "apps/web/src/components/ui/**",
+        "apps/web/src/components/ai-elements/**",
+        "apps/web/src/hooks/use-mobile.ts"
+      ],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }

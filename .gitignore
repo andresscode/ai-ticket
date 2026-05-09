@@ -8,6 +8,11 @@
 
 # build
 **/dist
+**/*.tsbuildinfo
+
+# tanstack router
+**/.tanstack
+**/routeTree.gen.ts
 
 # python
 **/__pycache__

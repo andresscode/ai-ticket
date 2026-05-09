@@ -1,0 +1,11 @@
+{
+  "extends": "@ai-ticket/tsconfig/react.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["vite/client"],
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["src"]
+}
