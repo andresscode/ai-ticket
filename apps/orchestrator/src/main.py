@@ -1,9 +1,14 @@
 from contextlib import asynccontextmanager
-from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from langchain_core.messages import HumanMessage
+from langgraph.types import Command
 
+from agents.graph import get_or_build_graph
 from config import get_settings
+from models.api import ChatRequest, HitlResumeRequest
+from stream import translate_chunks
 from tracing import init_tracing
 
 
@@ -23,10 +28,38 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/chat")
-async def chat(_payload: dict[str, Any]) -> None:
-    raise HTTPException(status_code=501, detail="not implemented yet (Phase 7)")
+async def chat(req: ChatRequest) -> StreamingResponse:
+    settings = get_settings()
+    graph = await get_or_build_graph(req.tenant_id, req.user_id, settings)
+    config = {"configurable": {"thread_id": req.thread_id}}
+
+    async def stream():
+        chunks = graph.astream(
+            {"messages": [HumanMessage(content=req.message)]},
+            config=config,
+            stream_mode=["messages", "updates"],
+            subgraphs=True,
+        )
+        async for sse in translate_chunks(chunks, req.thread_id):
+            yield sse
+
+    return StreamingResponse(stream(), media_type="text/event-stream")
 
 
 @app.post("/hitl/resume")
-async def hitl_resume(_payload: dict[str, Any]) -> None:
-    raise HTTPException(status_code=501, detail="not implemented yet (Phase 5)")
+async def hitl_resume(req: HitlResumeRequest) -> StreamingResponse:
+    settings = get_settings()
+    graph = await get_or_build_graph(req.tenant_id, req.user_id, settings)
+    config = {"configurable": {"thread_id": req.thread_id}}
+
+    async def stream():
+        chunks = graph.astream(
+            Command(resume=req.approved),
+            config=config,
+            stream_mode=["messages", "updates"],
+            subgraphs=True,
+        )
+        async for sse in translate_chunks(chunks, req.thread_id):
+            yield sse
+
+    return StreamingResponse(stream(), media_type="text/event-stream")
