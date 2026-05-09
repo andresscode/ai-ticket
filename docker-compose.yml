@@ -1,4 +1,18 @@
 services:
+  bff:
+    build:
+      context: .
+      dockerfile: apps/bff/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/aiticket
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      SESSION_SECRET: ${SESSION_SECRET:-dev-only-do-not-use-in-prod-0000000000000000000000000000000000000000}
+    depends_on:
+      - postgres
+      - orchestrator
+
   orchestrator:
     build:
       context: .
