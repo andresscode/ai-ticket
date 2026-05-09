@@ -71,36 +71,46 @@ def build_chat_model(settings: Settings, profile: ModelProfile) -> ChatOpenAI:
 # tune provider-specific params; call sites import by name.
 # ---------------------------------------------------------------------------
 
-_DETERMINISTIC = {"temperature": 0}
+_OPENAI_MODEL = "gpt-5.4-nano"
+_GATEWAY_MODEL = "deepseek/deepseek-v3.2-thinking"
+
+# Provider-specific knobs. They live with the provider entry, not in shared
+# `defaults`, because each provider has different routing requirements:
+#
+# - OpenAI's gpt-5 reasoning models reject `reasoning_effort` on /v1/chat/completions
+#   when function tools are bound — OpenAI requires /v1/responses for that combo,
+#   which `use_responses_api=True` selects.
+#
+# - DeepSeek-V3.2-Thinking via Vercel AI Gateway is an always-thinking model
+#   (the "-thinking" suffix activates it). It does not take a reasoning_effort
+#   param and runs over the standard /v1/chat/completions endpoint, so no extra
+#   params are needed here.
+_OPENAI_PARAMS = {"reasoning_effort": "low", "use_responses_api": True}
 
 SUPERVISOR = ModelProfile(
     providers={
-        "openai": ProviderConfig(model="gpt-4o-mini"),
-        "vercel": ProviderConfig(model="openai/gpt-4o-mini"),
+        "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
-    defaults=_DETERMINISTIC,
 )
 
 EVENTS = ModelProfile(
     providers={
-        "openai": ProviderConfig(model="gpt-4o-mini"),
-        "vercel": ProviderConfig(model="openai/gpt-4o-mini"),
+        "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
-    defaults=_DETERMINISTIC,
 )
 
 COMMERCE = ModelProfile(
     providers={
-        "openai": ProviderConfig(model="gpt-4o-mini"),
-        "vercel": ProviderConfig(model="openai/gpt-4o-mini"),
+        "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
-    defaults=_DETERMINISTIC,
 )
 
 PAYMENT = ModelProfile(
     providers={
-        "openai": ProviderConfig(model="gpt-4o-mini"),
-        "vercel": ProviderConfig(model="openai/gpt-4o-mini"),
+        "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
-    defaults=_DETERMINISTIC,
 )

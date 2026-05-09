@@ -21,10 +21,18 @@ from langgraph.types import interrupt
 from config import Settings
 from llm import PAYMENT, build_chat_model
 
-INIT_PROMPT = """You initialize payments for AI Ticket. Call init-payment with the order id from the conversation context. Do not invent ids. Return immediately after the tool succeeds.
+INIT_PROMPT = """You initialize payments for AI Ticket.
+
+Read the order id from the conversation history — it appears in a prior create-order tool result. Never invent or guess. Call init-payment with that order id and return immediately after the tool succeeds. Never include the order id, payment id, or any other internal id in your reply.
 """
 
-COMPLETE_PROMPT = """You finalize payments for AI Ticket. Call complete-payment with the payment id from the conversation context. Do not invent ids. Return the confirmation as the final response.
+COMPLETE_PROMPT = """You finalize payments for AI Ticket.
+
+Read the payment id from the conversation history — it appears in the prior init-payment tool result. Never invent or guess. Call complete-payment with that payment id.
+
+Return a brief, customer-friendly confirmation in the language of live-event ticketing — say the tickets are confirmed, booked, or ready, name the event and its date, and include any confirmation number the tool returned. Avoid internal-database verbs like "sold", "marked as paid", or "status updated"; the customer cares that they have tickets, not how rows changed.
+
+Do not include the order id, payment id, or any other internal id in your reply.
 """
 
 
@@ -40,9 +48,35 @@ class PaymentState:
 def _find_tool_result(messages: list[AnyMessage], tool_suffix: str) -> dict[str, Any]:
     for msg in reversed(messages):
         if isinstance(msg, ToolMessage) and msg.name and msg.name.endswith(tool_suffix):
-            content = msg.content if isinstance(msg.content, str) else json.dumps(msg.content)
-            return json.loads(content)
+            return _parse_tool_content(msg.content)
     raise RuntimeError(f"no tool result found ending with {tool_suffix!r}")
+
+
+def _parse_tool_content(content: Any) -> dict[str, Any]:
+    """Coerce a ToolMessage.content into a dict.
+
+    langchain-mcp-adapters surfaces an MCP tool's result in one of three shapes
+    depending on the version and what the tool returned:
+
+      - a dict (already parsed `structuredContent`)
+      - a JSON string (the joined text blocks)
+      - a list of content blocks: ``[{"type": "text", "text": "..."}]``
+
+    We accept all three. For the list shape we extract the first ``text`` block
+    and json-parse it.
+    """
+    if isinstance(content, dict):
+        return content
+    if isinstance(content, str):
+        return json.loads(content)
+    if isinstance(content, list):
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                text = block.get("text", "")
+                if isinstance(text, str) and text:
+                    return json.loads(text)
+        raise RuntimeError(f"no parseable text block in tool content: {content!r}")
+    raise RuntimeError(f"unsupported tool content type: {type(content).__name__}")
 
 
 async def build_payment_agent(settings: Settings, mcp_client: MultiServerMCPClient):

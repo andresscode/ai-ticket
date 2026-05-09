@@ -32,7 +32,12 @@ async def build_graph(tenant_id: str, user_id: str, settings: Settings) -> Any:
         agents=[events_agent, commerce_agent, payment_agent],
         model=build_chat_model(settings, SUPERVISOR),
         prompt=SUPERVISOR_PROMPT,
-        output_mode="last_message",
+        # full_history (not last_message) so each specialist's tool calls and
+        # tool results stay in the shared conversation. Without this, IDs from
+        # list-events / create-order / init-payment vanish from the parent
+        # state, and downstream agents (or the same agent on a follow-up turn)
+        # have to re-list events to recover them.
+        output_mode="full_history",
     ).compile(name="supervisor")
 
     builder = StateGraph(GraphState)
