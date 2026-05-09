@@ -1,3 +1,5 @@
+from typing import Any
+
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph_supervisor import create_supervisor
 
@@ -12,7 +14,7 @@ from .supervisor import MODEL as SUPERVISOR_MODEL
 from .supervisor import PROMPT as SUPERVISOR_PROMPT
 
 
-async def build_graph(tenant_id: str, user_id: str, settings: Settings):
+async def build_graph(tenant_id: str, user_id: str, settings: Settings) -> Any:
     mcp_client = build_mcp_client(tenant_id, user_id, settings)
 
     events_agent = await build_events_agent(settings, mcp_client)
@@ -27,3 +29,16 @@ async def build_graph(tenant_id: str, user_id: str, settings: Settings):
     )
 
     return workflow.compile(checkpointer=InMemorySaver())
+
+
+# Module-level cache so /hitl/resume reaches the same InMemorySaver the original
+# /chat created. Demo-scoped: lost on orchestrator restart (see notes/demo-brief.md
+# for the InMemorySaver tradeoff).
+_graph_cache: dict[tuple[str, str], Any] = {}
+
+
+async def get_or_build_graph(tenant_id: str, user_id: str, settings: Settings) -> Any:
+    key = (tenant_id, user_id)
+    if key not in _graph_cache:
+        _graph_cache[key] = await build_graph(tenant_id, user_id, settings)
+    return _graph_cache[key]
