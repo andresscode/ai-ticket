@@ -1,9 +1,6 @@
 import 'dotenv/config'
-import * as schema from '@ai-ticket/db'
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
+import { createDb, type Database } from '@ai-ticket/db'
 
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set')
 
-const sql = postgres(process.env.DATABASE_URL)
-export const db = drizzle(sql, { schema })
+export const db: Database = createDb(process.env.DATABASE_URL)

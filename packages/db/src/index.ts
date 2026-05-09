@@ -1,1 +1,8 @@
+export type { Database } from './client.js'
+export { createDb } from './client.js'
+export * from './queries/events.js'
+export * from './queries/inventory.js'
+export * from './queries/orders.js'
+export * from './queries/payments.js'
+export * from './queries/tenants.js'
 export * from './schema.js'

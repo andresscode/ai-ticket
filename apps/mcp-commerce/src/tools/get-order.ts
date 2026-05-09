@@ -1,6 +1,5 @@
-import { inventory, orderItems, orders } from '@ai-ticket/db'
+import { getOrderForTenant, getOrderItemsWithSeats } from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { getTenantId } from '../tenant-context'
@@ -8,11 +7,7 @@ import { getTenantId } from '../tenant-context'
 export async function getOrderHandler({ orderId }: { orderId: string }) {
   const tenantId = getTenantId()
 
-  const [order] = await db
-    .select()
-    .from(orders)
-    .where(and(eq(orders.id, orderId), eq(orders.tenantId, tenantId)))
-    .limit(1)
+  const [order] = await getOrderForTenant(db, orderId, tenantId)
 
   if (!order) {
     return {
@@ -21,17 +16,7 @@ export async function getOrderHandler({ orderId }: { orderId: string }) {
     }
   }
 
-  const items = await db
-    .select({
-      inventoryId: orderItems.inventoryId,
-      priceCents: orderItems.priceCents,
-      section: inventory.section,
-      row: inventory.row,
-      seatNumber: inventory.seatNumber,
-    })
-    .from(orderItems)
-    .innerJoin(inventory, eq(orderItems.inventoryId, inventory.id))
-    .where(eq(orderItems.orderId, orderId))
+  const items = await getOrderItemsWithSeats(db, orderId)
 
   const result = {
     id: order.id,

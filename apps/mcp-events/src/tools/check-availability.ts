@@ -1,6 +1,8 @@
-import { events, inventory } from '@ai-ticket/db'
+import {
+  countAvailableSeatsBySection,
+  findEventIdForTenant,
+} from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { getTenantId } from '../tenant-context'
@@ -12,11 +14,7 @@ export async function checkAvailabilityHandler({
 }) {
   const tenantId = getTenantId()
 
-  const [event] = await db
-    .select({ id: events.id })
-    .from(events)
-    .where(and(eq(events.id, eventId), eq(events.tenantId, tenantId)))
-    .limit(1)
+  const [event] = await findEventIdForTenant(db, eventId, tenantId)
 
   if (!event) {
     return {
@@ -25,16 +23,7 @@ export async function checkAvailabilityHandler({
     }
   }
 
-  const rows = await db
-    .select({
-      section: inventory.section,
-      count: sql<number>`cast(count(*) as int)`,
-    })
-    .from(inventory)
-    .where(
-      and(eq(inventory.eventId, eventId), eq(inventory.status, 'available')),
-    )
-    .groupBy(inventory.section)
+  const rows = await countAvailableSeatsBySection(db, eventId)
 
   const bySection = Object.fromEntries(rows.map((r) => [r.section, r.count]))
   const total = rows.reduce((sum, r) => sum + r.count, 0)

@@ -1,6 +1,5 @@
-import { orders, payments } from '@ai-ticket/db'
+import { getOrderForTenant, insertPayment } from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { createPaymentIntent } from '../stripe'
@@ -9,11 +8,7 @@ import { getTenantId } from '../tenant-context'
 export async function initPaymentHandler({ orderId }: { orderId: string }) {
   const tenantId = getTenantId()
 
-  const [order] = await db
-    .select()
-    .from(orders)
-    .where(and(eq(orders.id, orderId), eq(orders.tenantId, tenantId)))
-    .limit(1)
+  const [order] = await getOrderForTenant(db, orderId, tenantId)
 
   if (!order) {
     return {
@@ -49,16 +44,12 @@ export async function initPaymentHandler({ orderId }: { orderId: string }) {
     }
   }
 
-  const [payment] = await db
-    .insert(payments)
-    .values({
-      orderId,
-      stripePaymentIntentId: intent.id,
-      amountCents: order.totalCents,
-      currency: 'usd',
-      status: 'pending',
-    })
-    .returning()
+  const [payment] = await insertPayment(db, {
+    orderId,
+    stripePaymentIntentId: intent.id,
+    amountCents: order.totalCents,
+    currency: 'usd',
+  })
 
   if (!payment) {
     return {

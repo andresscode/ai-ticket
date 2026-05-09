@@ -11,7 +11,8 @@
     "db:export": "drizzle-kit export > ../../postgres/schema.sql"
   },
   "dependencies": {
-    "drizzle-orm": "catalog:"
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
     "@ai-ticket/tsconfig": "workspace:",

@@ -1,6 +1,10 @@
-import { inventory, orderItems, orders, payments } from '@ai-ticket/db'
+import {
+  completePaymentTx,
+  findPaymentById,
+  getOrderForTenant,
+  getOrderItemInventoryIds,
+} from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { confirmPaymentIntent } from '../stripe'
@@ -13,11 +17,7 @@ export async function completePaymentHandler({
 }) {
   const tenantId = getTenantId()
 
-  const [payment] = await db
-    .select()
-    .from(payments)
-    .where(eq(payments.id, paymentId))
-    .limit(1)
+  const [payment] = await findPaymentById(db, paymentId)
 
   if (!payment) {
     return {
@@ -28,11 +28,7 @@ export async function completePaymentHandler({
     }
   }
 
-  const [order] = await db
-    .select()
-    .from(orders)
-    .where(and(eq(orders.id, payment.orderId), eq(orders.tenantId, tenantId)))
-    .limit(1)
+  const [order] = await getOrderForTenant(db, payment.orderId, tenantId)
 
   if (!order) {
     return {
@@ -57,36 +53,16 @@ export async function completePaymentHandler({
     }
   }
 
-  // Fetch inventory IDs before the transaction so the tx contains only writes
-  const itemRows = await db
-    .select({ inventoryId: orderItems.inventoryId })
-    .from(orderItems)
-    .where(eq(orderItems.orderId, payment.orderId))
-    .limit(100)
+  const itemRows = await getOrderItemInventoryIds(db, payment.orderId)
 
   const inventoryIds = itemRows.map((r) => r.inventoryId)
 
   const result = await (async () => {
     try {
-      return await db.transaction(async (tx) => {
-        await tx
-          .update(payments)
-          .set({ status: 'succeeded' })
-          .where(eq(payments.id, paymentId))
-
-        await tx
-          .update(orders)
-          .set({ status: 'confirmed' })
-          .where(eq(orders.id, payment.orderId))
-
-        if (inventoryIds.length > 0) {
-          await tx
-            .update(inventory)
-            .set({ status: 'sold' })
-            .where(inArray(inventory.id, inventoryIds))
-        }
-
-        return true
+      return await completePaymentTx(db, {
+        paymentId,
+        orderId: payment.orderId,
+        inventoryIds,
       })
     } catch {
       return null

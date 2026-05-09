@@ -1,6 +1,5 @@
-import { events, inventory } from '@ai-ticket/db'
+import { findEventIdForTenant, suggestAvailableSeats } from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, asc, eq, lte, type SQL } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { getTenantId } from '../tenant-context'
@@ -20,11 +19,7 @@ export async function suggestSeatsHandler({
 }: Input) {
   const tenantId = getTenantId()
 
-  const [event] = await db
-    .select({ id: events.id })
-    .from(events)
-    .where(and(eq(events.id, eventId), eq(events.tenantId, tenantId)))
-    .limit(1)
+  const [event] = await findEventIdForTenant(db, eventId, tenantId)
 
   if (!event) {
     return {
@@ -33,25 +28,12 @@ export async function suggestSeatsHandler({
     }
   }
 
-  const filters: SQL[] = [
-    eq(inventory.eventId, eventId),
-    eq(inventory.status, 'available'),
-  ]
-  if (section) filters.push(eq(inventory.section, section))
-  if (maxPriceCents !== undefined)
-    filters.push(lte(inventory.priceCents, maxPriceCents))
-
-  const seats = await db
-    .select()
-    .from(inventory)
-    .where(and(...filters))
-    .orderBy(
-      asc(inventory.priceCents),
-      asc(inventory.section),
-      asc(inventory.row),
-      asc(inventory.seatNumber),
-    )
-    .limit(count)
+  const seats = await suggestAvailableSeats(db, {
+    eventId,
+    count,
+    section,
+    maxPriceCents,
+  })
 
   const result = seats.map((s) => ({
     id: s.id,

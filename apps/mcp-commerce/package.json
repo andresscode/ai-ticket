@@ -14,8 +14,6 @@
     "@ai-ticket/db": "workspace:",
     "@modelcontextprotocol/sdk": "catalog:",
     "dotenv": "catalog:",
-    "drizzle-orm": "catalog:",
-    "postgres": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

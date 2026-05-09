@@ -1,6 +1,9 @@
-import { events, inventory, orderItems, orders } from '@ai-ticket/db'
+import {
+  createOrderTx,
+  findEventIdForTenant,
+  findSeatsForEvent,
+} from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { getTenantId, getUserId } from '../tenant-context'
@@ -15,11 +18,7 @@ export async function createOrderHandler({
   const tenantId = getTenantId()
   const userId = getUserId()
 
-  const [event] = await db
-    .select({ id: events.id })
-    .from(events)
-    .where(and(eq(events.id, eventId), eq(events.tenantId, tenantId)))
-    .limit(1)
+  const [event] = await findEventIdForTenant(db, eventId, tenantId)
 
   if (!event) {
     return {
@@ -28,11 +27,7 @@ export async function createOrderHandler({
     }
   }
 
-  const allSeats = await db
-    .select()
-    .from(inventory)
-    .where(and(inArray(inventory.id, seatIds), eq(inventory.eventId, eventId)))
-    .limit(seatIds.length)
+  const allSeats = await findSeatsForEvent(db, eventId, seatIds)
 
   const foundIds = new Set(allSeats.map((s) => s.id))
   const notFound = seatIds.filter((id) => !foundIds.has(id))
@@ -65,28 +60,15 @@ export async function createOrderHandler({
 
   const result = await (async () => {
     try {
-      return await db.transaction(async (tx) => {
-        const [order] = await tx
-          .insert(orders)
-          .values({ tenantId, userId, eventId, totalCents })
-          .returning()
-
-        if (!order) throw new Error('Insert returned no rows')
-
-        await tx.insert(orderItems).values(
-          availableSeats.map((s) => ({
-            orderId: order.id,
-            inventoryId: s.id,
-            priceCents: s.priceCents,
-          })),
-        )
-
-        await tx
-          .update(inventory)
-          .set({ status: 'reserved' })
-          .where(inArray(inventory.id, seatIds))
-
-        return order
+      return await createOrderTx(db, {
+        tenantId,
+        userId,
+        eventId,
+        totalCents,
+        seats: availableSeats.map((s) => ({
+          id: s.id,
+          priceCents: s.priceCents,
+        })),
       })
     } catch {
       return null

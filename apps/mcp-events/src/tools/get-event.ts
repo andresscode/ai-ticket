@@ -1,17 +1,12 @@
-import { events } from '@ai-ticket/db'
+import { getEventForTenant } from '@ai-ticket/db'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
-import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../db'
 import { getTenantId } from '../tenant-context'
 
 export async function getEventHandler({ eventId }: { eventId: string }) {
   const tenantId = getTenantId()
-  const [row] = await db
-    .select()
-    .from(events)
-    .where(and(eq(events.id, eventId), eq(events.tenantId, tenantId)))
-    .limit(1)
+  const [row] = await getEventForTenant(db, eventId, tenantId)
 
   if (!row) {
     return {
