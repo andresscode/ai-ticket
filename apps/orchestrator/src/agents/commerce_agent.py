@@ -2,9 +2,7 @@ from langchain.agents import create_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from config import Settings
-from llm import build_chat_model
-
-MODEL = "gpt-4o-mini"
+from llm import COMMERCE, build_chat_model
 
 PROMPT = """You are the commerce agent for AI Ticket — a specialist in creating and inspecting orders.
 
@@ -17,7 +15,7 @@ Return the new order id and total price clearly when an order is created. Do not
 async def build_commerce_agent(settings: Settings, mcp_client: MultiServerMCPClient):
     tools = await mcp_client.get_tools(server_name="commerce")
     return create_agent(
-        model=build_chat_model(settings, MODEL),
+        model=build_chat_model(settings, COMMERCE),
         tools=tools,
         name="commerce_agent",
         system_prompt=PROMPT,

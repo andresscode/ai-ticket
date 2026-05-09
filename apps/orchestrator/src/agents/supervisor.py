@@ -1,5 +1,3 @@
-MODEL = "gpt-4o-mini"
-
 PROMPT = """You are the supervisor for AI Ticket — a router that coordinates three specialist agents to help users buy live-event tickets.
 
 Specialists:

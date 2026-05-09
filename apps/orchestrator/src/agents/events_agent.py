@@ -2,9 +2,7 @@ from langchain.agents import create_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from config import Settings
-from llm import build_chat_model
-
-MODEL = "gpt-4o-mini"
+from llm import EVENTS, build_chat_model
 
 PROMPT = """You are the events agent for AI Ticket — a specialist in browsing events and seat inventory.
 
@@ -17,7 +15,7 @@ If a request is ambiguous (e.g. multiple events match "Friday's show"), ask one 
 async def build_events_agent(settings: Settings, mcp_client: MultiServerMCPClient):
     tools = await mcp_client.get_tools(server_name="events")
     return create_agent(
-        model=build_chat_model(settings, MODEL),
+        model=build_chat_model(settings, EVENTS),
         tools=tools,
         name="events_agent",
         system_prompt=PROMPT,

@@ -19,8 +19,6 @@ class Settings(BaseSettings):
         if self.llm_provider == "openai":
             return "https://api.openai.com/v1"
         if self.llm_provider == "vercel":
-            # Vercel AI Gateway URL is provider-specific — caller overrides via subclass
-            # or env in deployments that use it. Default keeps OpenAI.
             return "https://ai-gateway.vercel.sh/v1"
         raise ValueError(f"unknown LLM_PROVIDER: {self.llm_provider}")
 

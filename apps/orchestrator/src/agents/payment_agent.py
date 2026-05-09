@@ -19,9 +19,7 @@ from langgraph.graph.message import add_messages
 from langgraph.types import interrupt
 
 from config import Settings
-from llm import build_chat_model
-
-MODEL = "gpt-4o-mini"
+from llm import PAYMENT, build_chat_model
 
 INIT_PROMPT = """You initialize payments for AI Ticket. Call init-payment with the order id from the conversation context. Do not invent ids. Return immediately after the tool succeeds.
 """
@@ -53,13 +51,13 @@ async def build_payment_agent(settings: Settings, mcp_client: MultiServerMCPClie
     complete_tool = next(t for t in tools if t.name.endswith("complete-payment"))
 
     init_agent = create_agent(
-        model=build_chat_model(settings, MODEL),
+        model=build_chat_model(settings, PAYMENT),
         tools=[init_tool],
         name="init_payment_inner",
         system_prompt=INIT_PROMPT,
     )
     complete_agent = create_agent(
-        model=build_chat_model(settings, MODEL),
+        model=build_chat_model(settings, PAYMENT),
         tools=[complete_tool],
         name="complete_payment_inner",
         system_prompt=COMPLETE_PROMPT,
