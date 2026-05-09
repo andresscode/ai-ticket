@@ -1,0 +1,7 @@
+{
+  "extends": "@ai-ticket/tsconfig/node.json",
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
+  "include": ["src", "__tests__", "tsup.config.ts", "vitest.config.ts"]
+}

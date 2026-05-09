@@ -1,0 +1,26 @@
+{
+  "name": "@ai-ticket/bff",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.2",
+    "dotenv": "catalog:",
+    "hono": "^4.12.18"
+  },
+  "devDependencies": {
+    "@ai-ticket/tsconfig": "workspace:",
+    "@types/node": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
