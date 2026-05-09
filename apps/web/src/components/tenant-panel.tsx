@@ -8,6 +8,7 @@ interface TenantPanelProps {
   pending: boolean
   disabled: boolean
   tagline: string
+  className?: string
   onSelect: () => void
 }
 
@@ -17,6 +18,7 @@ export function TenantPanel({
   pending,
   disabled,
   tagline,
+  className,
   onSelect,
 }: TenantPanelProps) {
   const venueLabel = tenant.venueType.toUpperCase()
@@ -27,12 +29,14 @@ export function TenantPanel({
       disabled={disabled}
       data-pending={pending || undefined}
       className={cn(
-        'group relative flex flex-1 flex-col overflow-hidden text-left',
-        'p-8 sm:p-12 lg:p-16',
-        'transition-[flex-grow,opacity,filter] duration-700 ease-[cubic-bezier(0.65,0,0.35,1)]',
+        'tenant-panel group relative flex flex-1 flex-col overflow-hidden text-left',
+        'p-6 sm:p-8 lg:p-10',
+        'cursor-pointer',
+        'transition-[flex-grow,opacity,filter,transform] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]',
         'data-[pending]:flex-[2.4] data-[pending]:cursor-progress',
         'disabled:opacity-30 disabled:[&:not([data-pending])]:grayscale-[0.4]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
+        'focus-visible:outline-none',
+        className,
       )}
       style={{
         backgroundColor: tenant.primaryColor,
@@ -59,7 +63,7 @@ export function TenantPanel({
 
       <header className="relative flex items-baseline justify-between">
         <span
-          className="font-[family-name:var(--font-display)] text-[clamp(3rem,7vw,5.5rem)] leading-none font-light tabular-nums opacity-90"
+          className="font-[family-name:var(--font-display)] text-[clamp(2.25rem,4.5vw,4rem)] leading-none font-light tabular-nums opacity-90"
           style={{
             fontVariationSettings: '"opsz" 144, "wght" 300, "SOFT" 100',
           }}
@@ -71,18 +75,18 @@ export function TenantPanel({
         </span>
       </header>
 
-      <div className="relative mt-auto flex flex-col gap-8 pt-16">
+      <div className="relative mt-auto flex flex-col gap-4 pt-8">
         <h2
-          className="font-[family-name:var(--font-display)] text-[clamp(2.75rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] font-normal"
+          className="font-[family-name:var(--font-display)] text-[clamp(2rem,5vw,4.5rem)] leading-[0.9] tracking-[-0.02em] font-normal"
           style={{ fontVariationSettings: '"opsz" 144, "wght" 400, "SOFT" 50' }}
         >
           {tenant.name}
         </h2>
-        <p className="font-[family-name:var(--font-italic)] max-w-md text-[clamp(1.125rem,1.6vw,1.5rem)] leading-snug italic opacity-90">
+        <p className="font-[family-name:var(--font-italic)] max-w-md text-base leading-snug italic opacity-90 sm:text-lg">
           {tagline}
         </p>
 
-        <div className="flex flex-wrap items-end justify-between gap-6 pt-8">
+        <div className="flex flex-wrap items-end justify-between gap-4 pt-4">
           <dl className="grid grid-cols-2 gap-x-10 gap-y-3 text-[10px] tracking-[0.28em] uppercase opacity-70">
             <div>
               <dt className="opacity-60">Venue</dt>
@@ -119,20 +123,21 @@ export function TenantPanel({
 
           <span
             className={cn(
-              'inline-flex items-center gap-3 self-end',
-              'font-[family-name:var(--font-italic)] text-2xl italic',
-              'transition-transform duration-500 group-hover:translate-x-1',
+              'inline-flex origin-right items-center gap-2 self-end',
+              'font-[family-name:var(--font-italic)] text-xl italic',
+              'transition-[transform,letter-spacing] duration-500',
+              'group-hover:scale-110 group-hover:tracking-wide',
               'group-disabled:opacity-50',
             )}
           >
             {pending ? 'Entering' : 'Enter'}
             <ArrowUpRight
               className={cn(
-                'size-6 transition-transform duration-500',
-                'group-hover:rotate-45',
+                'size-5 transition-transform duration-500',
+                'group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:rotate-12',
                 pending && 'rotate-45 animate-pulse',
               )}
-              strokeWidth={1.25}
+              strokeWidth={1.5}
             />
           </span>
         </div>
@@ -141,10 +146,22 @@ export function TenantPanel({
       <span
         aria-hidden="true"
         className={cn(
-          'pointer-events-none absolute inset-0 ring-inset ring-0',
-          'transition-[box-shadow] duration-500',
-          'group-hover:shadow-[inset_0_0_0_1px_currentColor]',
+          'pointer-events-none absolute inset-0',
+          'transition-[box-shadow,opacity] duration-500',
+          'shadow-[inset_0_0_0_0px_currentColor]',
+          'group-hover:shadow-[inset_0_0_0_3px_currentColor]',
+          'group-focus-visible:shadow-[inset_0_0_0_3px_currentColor]',
         )}
+      />
+      <span
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500',
+          'group-hover:opacity-100',
+        )}
+        style={{
+          background: `radial-gradient(circle at 50% 110%, ${tenant.accentColor}40 0%, transparent 55%)`,
+        }}
       />
     </button>
   )

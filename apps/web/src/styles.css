@@ -141,3 +141,18 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .tenant-board:has(.tenant-panel:hover) .tenant-panel:not(:hover) {
+    flex-grow: 0.7;
+    opacity: 0.45;
+    filter: grayscale(0.55);
+  }
+  .tenant-board .tenant-panel:hover {
+    flex-grow: 1.45;
+  }
+  .tenant-board:has(.tenant-panel[data-pending])
+    .tenant-panel:not([data-pending]) {
+    opacity: 0.25;
+  }
+}

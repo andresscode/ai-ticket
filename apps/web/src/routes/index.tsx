@@ -49,33 +49,30 @@ function LandingPage() {
   const list = tenants.data ?? []
 
   return (
-    <main className="relative flex min-h-svh flex-col overflow-hidden bg-background text-foreground">
+    <main className="relative flex h-svh flex-col overflow-hidden bg-background text-foreground">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/20"
       />
       <Header />
 
-      <section className="flex flex-1 flex-col lg:flex-row">
+      <section className="tenant-board flex flex-1 flex-col lg:flex-row">
         {tenants.isPending ? (
           <SkeletonPanels />
         ) : tenants.isError ? (
           <ErrorState message={String(tenants.error)} />
         ) : (
           list.map((tenant, idx) => (
-            <div
+            <TenantPanel
               key={tenant.slug}
-              className="flex flex-1 not-last:border-foreground/10 lg:not-last:border-r"
-            >
-              <TenantPanel
-                index={idx + 1}
-                tenant={tenant}
-                tagline={TAGLINES[tenant.slug] ?? 'An evening, on the house.'}
-                pending={pending === tenant.slug}
-                disabled={pending !== null && pending !== tenant.slug}
-                onSelect={() => handleSelect(tenant)}
-              />
-            </div>
+              index={idx + 1}
+              tenant={tenant}
+              tagline={TAGLINES[tenant.slug] ?? 'An evening, on the house.'}
+              pending={pending === tenant.slug}
+              disabled={pending !== null && pending !== tenant.slug}
+              onSelect={() => handleSelect(tenant)}
+              className="not-last:border-foreground/10 lg:not-last:border-r"
+            />
           ))
         )}
       </section>
@@ -87,7 +84,7 @@ function LandingPage() {
 
 function Header() {
   return (
-    <header className="relative grid grid-cols-12 items-end gap-4 px-6 pt-10 pb-8 sm:px-10 sm:pt-14 lg:px-16">
+    <header className="relative grid grid-cols-12 items-end gap-3 px-6 pt-6 pb-4 sm:px-10 sm:pt-8 lg:px-16">
       <div className="col-span-12 flex items-center justify-between gap-6 text-[10px] tracking-[0.36em] uppercase opacity-70 lg:col-span-12">
         <span>AI Ticket · Season 26 · Demo</span>
         <span className="hidden sm:inline">
@@ -100,25 +97,25 @@ function Header() {
 
       <div
         aria-hidden="true"
-        className="col-span-12 mt-4 h-px bg-foreground/15"
+        className="col-span-12 mt-2 h-px bg-foreground/15"
       />
 
-      <div className="col-span-12 mt-10 grid grid-cols-12 items-end gap-x-6 gap-y-6">
+      <div className="col-span-12 mt-4 grid grid-cols-12 items-end gap-x-6 gap-y-3">
         <h1
-          className="font-(family-name:--font-display) col-span-12 text-[clamp(3rem,9vw,7.5rem)] leading-[0.88] tracking-tight font-normal lg:col-span-9"
+          className="font-(family-name:--font-display) col-span-12 text-[clamp(2rem,5vw,4.25rem)] leading-[0.9] tracking-tight font-normal lg:col-span-9"
           style={{ fontVariationSettings: '"opsz" 144, "wght" 380, "SOFT" 30' }}
         >
           Choose your venue.
           <span
-            className="font-italic mt-1 block italic opacity-90"
+            className="font-italic ml-2 italic opacity-90"
             style={{ fontVariationSettings: 'normal' }}
           >
             two doors, one&nbsp;conversation.
           </span>
         </h1>
-        <p className="text-muted-foreground col-span-12 max-w-sm text-sm leading-relaxed lg:col-span-3 lg:justify-self-end lg:text-right">
+        <p className="text-muted-foreground col-span-12 max-w-sm text-xs leading-relaxed lg:col-span-3 lg:justify-self-end lg:text-right">
           Pick a tenant to enter the assistant. Each room sets its own colour,
-          its own catalogue of nights, and its own seats.
+          catalogue, and seats.
         </p>
       </div>
     </header>
@@ -127,7 +124,7 @@ function Header() {
 
 function Footer() {
   return (
-    <footer className="relative mt-auto flex items-center justify-between gap-6 px-6 pt-6 pb-8 text-[10px] tracking-[0.28em] uppercase opacity-60 sm:px-10 lg:px-16">
+    <footer className="relative mt-auto flex items-center justify-between gap-6 px-6 pt-3 pb-4 text-[10px] tracking-[0.28em] uppercase opacity-60 sm:px-10 lg:px-16">
       <span>↘ Select a panel to begin</span>
       <span className="hidden sm:inline">
         Streaming via the AI SDK · MCP under the hood
