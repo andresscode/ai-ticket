@@ -5,13 +5,15 @@ vi.mock('../src/db', () => ({ db: {} }))
 
 vi.mock('@ai-ticket/db', () => ({
   findTenantBySlug: vi.fn(),
+  listTenants: vi.fn(),
 }))
 
-import { findTenantBySlug } from '@ai-ticket/db'
+import { findTenantBySlug, listTenants } from '@ai-ticket/db'
 import { authRoutes } from '../src/routes/auth'
 import { sessions } from '../src/session'
 
 const mockedFindTenant = vi.mocked(findTenantBySlug)
+const mockedListTenants = vi.mocked(listTenants)
 
 function extractSessionCookie(res: Response): string {
   // Login emits two Set-Cookie headers (initial + populated session). The last
@@ -30,6 +32,45 @@ function makeApp() {
 
 describe('auth routes', () => {
   beforeEach(() => vi.clearAllMocks())
+
+  it('GET /auth/tenants returns tenants with parsed theme', async () => {
+    mockedListTenants.mockResolvedValueOnce([
+      {
+        id: 't1',
+        name: 'Jazz Gallery',
+        slug: 'jazz-gallery',
+        config:
+          '{"primaryColor":"#1a1a2e","accentColor":"#f4c542","venueType":"jazz"}',
+      },
+      {
+        id: 't2',
+        name: 'Empire Arts',
+        slug: 'empire-arts',
+        config:
+          '{"primaryColor":"#0f3460","accentColor":"#00c9a7","venueType":"theater"}',
+      },
+    ])
+    const app = makeApp()
+    const res = await app.request('/auth/tenants')
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as {
+      tenants: Array<{
+        slug: string
+        name: string
+        primaryColor: string
+        accentColor: string
+        venueType: string
+      }>
+    }
+    expect(body.tenants).toHaveLength(2)
+    expect(body.tenants[0]).toEqual({
+      slug: 'jazz-gallery',
+      name: 'Jazz Gallery',
+      primaryColor: '#1a1a2e',
+      accentColor: '#f4c542',
+      venueType: 'jazz',
+    })
+  })
 
   it('rejects /auth/demo-login when body is missing tenant', async () => {
     const app = makeApp()
@@ -60,6 +101,8 @@ describe('auth routes', () => {
         id: 'tenant-uuid',
         name: 'Jazz Gallery',
         slug: 'jazz-gallery',
+        config:
+          '{"primaryColor":"#1a1a2e","accentColor":"#f4c542","venueType":"jazz"}',
       },
     ])
 
@@ -80,11 +123,17 @@ describe('auth routes', () => {
       threadId: string
       tenantName: string
       tenantSlug: string
+      theme: { primaryColor: string; accentColor: string; venueType: string }
     }
     expect(body.tenantId).toBe('tenant-uuid')
     expect(body.userId).toBe('demo-user-tenant-uuid')
     expect(body.tenantName).toBe('Jazz Gallery')
     expect(body.tenantSlug).toBe('jazz-gallery')
+    expect(body.theme).toEqual({
+      primaryColor: '#1a1a2e',
+      accentColor: '#f4c542',
+      venueType: 'jazz',
+    })
     // threadId is a uuid v4
     expect(body.threadId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
@@ -99,7 +148,13 @@ describe('auth routes', () => {
 
   it('returns the session payload from /auth/me with a valid cookie', async () => {
     mockedFindTenant.mockResolvedValueOnce([
-      { id: 'tenant-uuid', name: 'Jazz Gallery', slug: 'jazz-gallery' },
+      {
+        id: 'tenant-uuid',
+        name: 'Jazz Gallery',
+        slug: 'jazz-gallery',
+        config:
+          '{"primaryColor":"#1a1a2e","accentColor":"#f4c542","venueType":"jazz"}',
+      },
     ])
 
     const app = makeApp()

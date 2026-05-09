@@ -5,6 +5,7 @@ vi.mock('../src/db', () => ({ db: {} }))
 
 vi.mock('@ai-ticket/db', () => ({
   findTenantBySlug: vi.fn(),
+  listTenants: vi.fn(),
 }))
 
 import { findTenantBySlug } from '@ai-ticket/db'
@@ -49,7 +50,13 @@ async function readAll(res: Response): Promise<string> {
 
 async function loginCookie(app: Hono): Promise<string> {
   mockedFindTenant.mockResolvedValueOnce([
-    { id: 'tenant-uuid', name: 'Jazz Gallery', slug: 'jazz-gallery' },
+    {
+      id: 'tenant-uuid',
+      name: 'Jazz Gallery',
+      slug: 'jazz-gallery',
+      config:
+        '{"primaryColor":"#1a1a2e","accentColor":"#f4c542","venueType":"jazz"}',
+    },
   ])
   const res = await app.request('/auth/demo-login', {
     method: 'POST',

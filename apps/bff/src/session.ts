@@ -1,10 +1,19 @@
 import { CookieStore, type Session, sessionMiddleware } from 'hono-sessions'
 import { env } from './env'
 
+export interface TenantTheme {
+  primaryColor: string
+  accentColor: string
+  venueType: string
+}
+
 export interface SessionPayload {
   userId: string
   tenantId: string
   threadId: string
+  tenantSlug: string
+  tenantName: string
+  theme: TenantTheme
 }
 
 export type AppSession = Session<SessionPayload>
@@ -32,8 +41,20 @@ export function readSession(session: AppSession): SessionPayload | null {
   const userId = session.get('userId')
   const tenantId = session.get('tenantId')
   const threadId = session.get('threadId')
-  if (!userId || !tenantId || !threadId) return null
-  return { userId, tenantId, threadId }
+  const tenantSlug = session.get('tenantSlug')
+  const tenantName = session.get('tenantName')
+  const theme = session.get('theme') as TenantTheme | undefined
+  if (
+    !userId ||
+    !tenantId ||
+    !threadId ||
+    !tenantSlug ||
+    !tenantName ||
+    !theme
+  ) {
+    return null
+  }
+  return { userId, tenantId, threadId, tenantSlug, tenantName, theme }
 }
 
 export function writeSession(
@@ -43,4 +64,7 @@ export function writeSession(
   session.set('userId', payload.userId)
   session.set('tenantId', payload.tenantId)
   session.set('threadId', payload.threadId)
+  session.set('tenantSlug', payload.tenantSlug)
+  session.set('tenantName', payload.tenantName)
+  session.set('theme', payload.theme)
 }
