@@ -173,7 +173,9 @@ These are deliberate scope cuts for a demo — not oversights. Each would need t
 
 **Frontend error handling.** Orchestrator and MCP errors surface as raw messages in the chat window. A production UI would distinguish network errors, payment failures, and out-of-stock events with specific copy and retry affordances. The AI SDK `error` state is wired up but not fully exploited in the UI layer.
 
-**Vercel provider stability.** The `vercel` provider path works but is not fully validated against the full demo flow. The supervisor occasionally repeats content already streamed by a sub-agent. This is a prompting and model-specific issue, not an architectural one, but it would require iteration to resolve.
+**Prompt quality.** Agent prompts need further refinement. Two known issues span both providers: agents occasionally leak internal orchestration details to the user (e.g. mentioning they are "transferring to the supervisor"), which breaks the conversational illusion; and the supervisor sometimes repeats content already streamed by a sub-agent. Both are prompting issues — not architectural ones — and would need systematic iteration (prompt rewrites + eval coverage) before a production release. The repetition issue is more pronounced on the `vercel` provider path.
+
+**Vercel provider stability.** The `vercel` provider path works but is not fully validated against the full demo flow. Beyond the prompt quality issues above, no other provider-specific gaps have been identified.
 
 **Test coverage.** The pytest suite covers stream serialization, both moderation provider paths, and guardrail routing (22 tests). Supervisor intent classification and the HITL payment flow have no automated tests. A production system would need a fake-`ChatOpenAI` harness to test routing logic deterministically, and integration tests for the full HITL sequence.
 

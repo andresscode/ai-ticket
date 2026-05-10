@@ -13,6 +13,8 @@ A conversational AI assistant that lets a live-event fan buy tickets through nat
 
 > **Status:** Demo-grade implementation. See [ARCHITECTURE.md](./ARCHITECTURE.md) for known gaps and deliberate scope cuts.
 
+**[Watch the demo](https://vimeo.com/1190882004?share=copy&fl=sv&fe=ci)**
+
 ---
 
 ## Running the Demo
@@ -152,7 +154,8 @@ From the inspector you can browse available tools, supply arguments, and inspect
 This is a scoped demo — not a production-ready product. A few gaps worth knowing about:
 
 - **Frontend error handling** — orchestrator and MCP errors are surfaced as raw messages in the chat. A production UI would distinguish network errors, payment failures, and out-of-stock states with tailored copy and retry affordances.
-- **Vercel AI Gateway provider** — the `vercel` provider path (Gemini models via the gateway) is functional but less tested. The supervisor occasionally repeats content already provided by a sub-agent; this is a prompting issue specific to that model family and would need iteration to resolve.
+- **Prompt quality** — agent prompts need refinement. Known issues: agents occasionally leak internal orchestration details to the user (e.g. mentioning they are "transferring to the supervisor"), and the supervisor sometimes repeats content already streamed by a sub-agent. Both are prompting issues, not architectural ones, but they would need iteration before a production release.
+- **Vercel AI Gateway provider** — the `vercel` provider path (Gemini models via the gateway) is functional but less tested. The supervisor repetition issue described above is more pronounced with this provider.
 - **Test coverage** — the pytest suite covers stream serialization, moderation, and guardrails. Supervisor routing logic and the HITL payment flow have no automated tests. A production system would need broader coverage and edge-case handling.
 - **Evals** — offline evaluation with `phoenix.evals` was scoped out due to time constraints. For a production system, intent classification accuracy and end-to-end flow correctness should be measured with a golden dataset on every significant model or prompt change.
 - **Agent capabilities** — the implemented flow covers the happy path only. Many real-world features are absent: order cancellation, seat map rendering by row, looking up orders from a previous session or by confirmation number, modifying an existing order, waitlisting, and multi-event cart flows. These would each require new MCP tools, agent instructions, and UI components.
