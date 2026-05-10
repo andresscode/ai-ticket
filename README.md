@@ -49,9 +49,9 @@ Wait for all services to report healthy, then open [localhost:3000](http://local
 
 1. Pick a tenant — **Jazz Gallery** or **Empire Arts**
 2. Type: *"What's on this week?"*
-3. Type: *"Two tickets to the Friday jazz show, seats in the back, under $80 total"*
-4. Confirm the seat suggestion
-5. A payment modal appears — click **Pay Now**
+3. Select one event and ask the agent to book your seats. Provide the section (back, front, balcony, VIP) and a budget.
+4. Once the agent confirms your seats. Check **My Tickets** at the top-right corner. It should be in *Pending*.
+5. Tell the assistant you want to pay your tickets and a payment modal appears — click **Pay Now**.
 6. You receive a booking confirmation number
 7. Click **My Tickets** in the header to see the order — status moves from *Pending* to *Confirmed* once payment completes
 
@@ -59,22 +59,13 @@ Total time: ~60 seconds. Every layer of the stack fires.
 
 ### Step 5 — Watch the trace
 
-Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, and latency.
-
-> **Note on cost display:** Arize Phoenix requires per-model cost configuration to show token costs in traces. Not all models are pre-configured out of the box — you can add them under *Settings → AI Providers*. That said, this is optional setup and not something you need to do to evaluate the demo.
+Open [localhost:6006](http://localhost:6006) (Arize Phoenix) — no account needed. You'll see the full trace waterfall for the request: supervisor routing, agent hops, MCP tool calls, LLM token counts, cost, and latency.
 
 ### Try different seat sections
 
-Each event has inventory across up to four sections. Use these prompts to explore them:
+> **Note:** This is a demo — the agent has not been tested for edge cases and may produce unexpected responses outside the happy path. Stick to the flow described above for the most reliable experience.
 
-| What you want to see | Example prompt |
-|---|---|
-| Front (closest to stage) | *"Two tickets to the jazz show, as close to the stage as possible"* |
-| Back (affordable floor) | *"Two tickets to Saturday's show, somewhere in the back"* |
-| Balcony (budget) | *"Two tickets under $40 each, balcony is fine"* |
-| VIP | *"One VIP ticket to opening night"* |
-| Budget cap across sections | *"Two tickets to Hamlet, total budget under $100"* |
-| Let the AI decide | *"Two tickets to the jazz show, surprise me"* |
+Each event has inventory across up to four sections.
 
 | Section | Position | Price range |
 |---|---|---|
