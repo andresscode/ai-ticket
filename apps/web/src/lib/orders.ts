@@ -6,5 +6,5 @@ export const ordersQuery = queryOptions({
   queryKey: ['orders'] as const,
   queryFn: () =>
     api<{ orders: OrderSummary[] }>('/api/orders').then((d) => d.orders),
-  staleTime: 30_000,
+  staleTime: 0,
 })
