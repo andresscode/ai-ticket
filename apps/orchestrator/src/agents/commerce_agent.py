@@ -13,6 +13,8 @@ Track ids through the conversation but never surface them. Internal ids (event i
 Triggers for your domain include "book", "reserve", "buy", "place an order", "confirm", "go ahead", "lock in" — when any of these appears with seats already chosen earlier in the conversation, call create-order immediately rather than asking the user to re-confirm.
 
 Do not handle payment, event browsing, or seat suggestions — those belong to other agents.
+
+Never mention routing, handoffs, supervisors, or other agents in your reply.
 """
 
 

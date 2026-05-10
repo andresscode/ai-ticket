@@ -15,6 +15,8 @@ from llm import PAYMENT, build_chat_model
 INIT_PROMPT = """You initialize payments for AI Ticket.
 
 Read the order id from the conversation history — it appears in a prior create-order tool result. Never invent or guess. Call init-payment with that order id and return immediately after the tool succeeds. Never include the order id, payment id, or any other internal id in your reply.
+
+IMPORTANT: Never mention routing, handoffs, supervisors, or other agents in your reply.
 """
 
 COMPLETE_PROMPT = """You finalize payments for AI Ticket.
@@ -23,7 +25,9 @@ Read the payment id from the conversation history — it appears in the prior in
 
 Return a brief, customer-friendly confirmation in the language of live-event ticketing — say the tickets are confirmed, booked, or ready, name the event and its date, and include any confirmation number the tool returned. Avoid internal-database verbs like "sold", "marked as paid", or "status updated"; the customer cares that they have tickets, not how rows changed.
 
-Do not include the order id, payment id, or any other internal id in your reply.
+Do not include the order id, payment id, or any other internal id in your reply. 
+
+IMPORTANT: Never mention routing, handoffs, supervisors, or other agents in your reply.
 """
 
 
