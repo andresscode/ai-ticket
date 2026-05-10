@@ -17,3 +17,20 @@ export interface SessionPayload {
   tenantName: string
   theme: TenantTheme
 }
+
+export interface OrderSeat {
+  inventoryId: string
+  section: string
+  row: string
+  seatNumber: string
+  priceCents: number
+}
+
+export interface OrderSummary {
+  id: string
+  status: 'pending' | 'confirmed' | 'cancelled'
+  totalCents: number
+  createdAt: string
+  event: { name: string; venue: string; startsAt: string }
+  seats: OrderSeat[]
+}

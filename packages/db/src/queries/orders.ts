@@ -1,6 +1,27 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import type { Database } from '../client.js'
-import { inventory, orderItems, orders } from '../schema.js'
+import { events, inventory, orderItems, orders } from '../schema.js'
+
+export function getOrdersForUser(
+  db: Database,
+  userId: string,
+  tenantId: string,
+) {
+  return db
+    .select({
+      id: orders.id,
+      status: orders.status,
+      totalCents: orders.totalCents,
+      createdAt: orders.createdAt,
+      eventName: events.name,
+      eventVenue: events.venue,
+      eventStartsAt: events.startsAt,
+    })
+    .from(orders)
+    .innerJoin(events, eq(orders.eventId, events.id))
+    .where(and(eq(orders.userId, userId), eq(orders.tenantId, tenantId)))
+    .orderBy(desc(orders.createdAt))
+}
 
 export function getOrderForTenant(
   db: Database,
