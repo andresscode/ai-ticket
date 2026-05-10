@@ -1,4 +1,15 @@
 services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      BFF_URL: http://bff:3001
+    depends_on:
+      - bff
+
   bff:
     build:
       context: .
