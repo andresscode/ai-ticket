@@ -35,10 +35,10 @@ def build_chat_model(settings: Settings, profile: ModelProfile) -> ChatOpenAI:
     )
 
 
-_OPENAI_FAST = "gpt-5.4-nano"
-_OPENAI_BALANCED = "gpt-5.4-mini"
-_VERCEL_FAST = "google/gemini-3.1-flash-lite"
-_VERCEL_BALANCED = "google/gemini-3-flash"
+_OPENAI_BASE = "gpt-5.4-mini"
+_OPENAI_BETTER = "gpt-5.4"
+_VERCEL_BASE = "google/gemini-3.1-flash-image-preview"
+_VERCEL_BETTER = "google/gemini-3.1-pro-preview"
 
 # gpt-5 reasoning models with bound function tools require /v1/responses
 # (use_responses_api=True). DeepSeek-V3.2-Thinking via the gateway thinks by
@@ -47,31 +47,28 @@ _OPENAI_PARAMS = {"reasoning_effort": "low", "use_responses_api": True}
 
 SUPERVISOR = ModelProfile(
     providers={
-        "openai": ProviderConfig(model=_OPENAI_FAST, params=_OPENAI_PARAMS),
-        "vercel": ProviderConfig(model=_VERCEL_FAST),
+        "openai": ProviderConfig(model=_OPENAI_BETTER, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_VERCEL_BETTER),
     },
 )
 
 EVENTS = ModelProfile(
     providers={
-        "openai": ProviderConfig(model=_OPENAI_BALANCED, params=_OPENAI_PARAMS),
-        "vercel": ProviderConfig(model=_VERCEL_BALANCED),
+        "openai": ProviderConfig(model=_OPENAI_BASE, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_VERCEL_BASE),
     },
-    defaults={"tags": ["nostream"]},
 )
 
 COMMERCE = ModelProfile(
     providers={
-        "openai": ProviderConfig(model=_OPENAI_FAST, params=_OPENAI_PARAMS),
-        "vercel": ProviderConfig(model=_VERCEL_FAST),
+        "openai": ProviderConfig(model=_OPENAI_BASE, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_VERCEL_BASE),
     },
-    defaults={"tags": ["nostream"]},
 )
 
 PAYMENT = ModelProfile(
     providers={
-        "openai": ProviderConfig(model=_OPENAI_FAST, params=_OPENAI_PARAMS),
-        "vercel": ProviderConfig(model=_VERCEL_FAST),
+        "openai": ProviderConfig(model=_OPENAI_BASE, params=_OPENAI_PARAMS),
+        "vercel": ProviderConfig(model=_VERCEL_BASE),
     },
-    defaults={"tags": ["nostream"]},
 )
