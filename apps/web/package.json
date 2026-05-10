@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 3000",
-    "build": "tsc -b && vite build",
+    "build": "tsr generate && tsc -b && vite build",
     "preview": "vite preview --port 3000 --host",
     "check": "tsc -b --noEmit",
     "clean": "rm -rf dist"
@@ -61,6 +61,7 @@
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query-devtools": "^5.100.9",
     "@tanstack/react-router-devtools": "^1.166.13",
+    "@tanstack/router-cli": "^1.166.43",
     "@tanstack/router-plugin": "^1.167.35",
     "@types/node": "catalog:",
     "@types/react": "^19.2.14",
