@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        BFF_URL: http://bff:3001
     ports:
       - "3000:3000"
     environment:

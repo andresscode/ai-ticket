@@ -8,6 +8,10 @@ COPY packages/tsconfig ./packages/tsconfig
 COPY apps/web ./apps/web
 
 RUN pnpm install --frozen-lockfile --ignore-scripts
+
+ARG BFF_URL
+ENV BFF_URL=$BFF_URL
+
 RUN pnpm --filter @ai-ticket/web build
 
 EXPOSE 3000
