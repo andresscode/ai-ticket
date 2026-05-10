@@ -33,7 +33,7 @@ export function TenantPanel({
         'p-6 sm:p-8 lg:p-10',
         'cursor-pointer',
         'transition-[flex-grow,opacity,filter,transform] duration-500 ease-[cubic-bezier(0.65,0,0.35,1)]',
-        'data-[pending]:flex-[2.4] data-[pending]:cursor-progress',
+        'data-pending:flex-[2.4] data-pending:cursor-progress',
         'disabled:opacity-30 disabled:[&:not([data-pending])]:grayscale-[0.4]',
         'focus-visible:outline-none',
         className,
@@ -63,7 +63,7 @@ export function TenantPanel({
 
       <header className="relative flex items-baseline justify-between">
         <span
-          className="font-[family-name:var(--font-display)] text-[clamp(2.25rem,4.5vw,4rem)] leading-none font-light tabular-nums opacity-90"
+          className="font-(family-name:--font-display) text-[clamp(2.25rem,4.5vw,4rem)] leading-none font-light tabular-nums opacity-90"
           style={{
             fontVariationSettings: '"opsz" 144, "wght" 300, "SOFT" 100',
           }}
@@ -77,12 +77,12 @@ export function TenantPanel({
 
       <div className="relative mt-auto flex flex-col gap-4 pt-8">
         <h2
-          className="font-[family-name:var(--font-display)] text-[clamp(2rem,5vw,4.5rem)] leading-[0.9] tracking-[-0.02em] font-normal"
+          className="font-(family-name:--font-display) text-[clamp(2rem,5vw,4.5rem)] leading-[0.9] tracking-[-0.02em] font-normal"
           style={{ fontVariationSettings: '"opsz" 144, "wght" 400, "SOFT" 50' }}
         >
           {tenant.name}
         </h2>
-        <p className="font-[family-name:var(--font-italic)] max-w-md text-base leading-snug italic opacity-90 sm:text-lg">
+        <p className="font-italic max-w-md text-base leading-snug italic opacity-90 sm:text-lg">
           {tagline}
         </p>
 
@@ -98,7 +98,7 @@ export function TenantPanel({
             </div>
             <div>
               <dt className="opacity-60">Slug</dt>
-              <dd className="mt-1 font-[family-name:var(--font-mono)] tracking-[0.18em] normal-case">
+              <dd className="mt-1 font-mono tracking-[0.18em] normal-case">
                 {tenant.slug}
               </dd>
             </div>
@@ -124,7 +124,7 @@ export function TenantPanel({
           <span
             className={cn(
               'inline-flex origin-right items-center gap-2 self-end',
-              'font-[family-name:var(--font-italic)] text-xl italic',
+              'font-italic text-xl italic',
               'transition-[transform,letter-spacing] duration-500',
               'group-hover:scale-110 group-hover:tracking-wide',
               'group-disabled:opacity-50',
