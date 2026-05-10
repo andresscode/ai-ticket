@@ -1,5 +1,6 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
+import { Brain, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Confirmation,
@@ -177,7 +178,10 @@ export function ChatView({ session }: { session: SessionPayload }) {
                             />
                           )
                         }
-                        return null
+                        return status === 'streaming' &&
+                          last?.id === message.id ? (
+                          <StatusShimmer key={key} status="Streaming" />
+                        ) : null
                       })}
                     </MessageContent>
                   </Message>
@@ -189,7 +193,7 @@ export function ChatView({ session }: { session: SessionPayload }) {
                   className="not-first:mt-6"
                 >
                   <MessageContent>
-                    <ThinkingShimmer />
+                    <StatusShimmer status="Thinking" />
                   </MessageContent>
                 </Message>
               )}
@@ -339,10 +343,17 @@ function PaymentConfirmation({
   )
 }
 
-function ThinkingShimmer({ label = 'Thinking' }: { label?: string }) {
+function StatusShimmer({ status }: { status: 'Thinking' | 'Streaming' }) {
   return (
-    <Shimmer as="span" className="font-italic text-sm italic">
-      {`${label}…`}
-    </Shimmer>
+    <div className="flex gap-0.5 items-center text-muted-foreground">
+      {status === 'Thinking' ? (
+        <Brain className="w-3 h-3 animate-pulse" />
+      ) : (
+        <Sparkles className="w-3 h-3 animate-pulse" />
+      )}
+      <Shimmer as="span" className="font-italic text-sm italic">
+        {`${status}…`}
+      </Shimmer>
+    </div>
   )
 }
