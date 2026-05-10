@@ -8,9 +8,7 @@ export async function translate(
   writer: UIMessageStreamWriter<CustomUIMessage>,
 ): Promise<void> {
   let textId: string | null = null
-  // FIFO of pending toolCallIds keyed by `${agent}::${tool}` so a result lands
-  // on the right call when an agent invokes the same tool more than once.
-  const pendingByKey = new Map<string, string[]>()
+  const seenInputs = new Set<string>()
 
   const closeText = () => {
     if (textId) {
@@ -33,11 +31,8 @@ export async function translate(
 
       case 'tool_call': {
         closeText()
-        const toolCallId = randomUUID()
-        const key = `${event.agent}::${event.tool}`
-        const queue = pendingByKey.get(key) ?? []
-        queue.push(toolCallId)
-        pendingByKey.set(key, queue)
+        const toolCallId = event.tool_call_id || randomUUID()
+        seenInputs.add(toolCallId)
         writer.write({
           type: 'tool-input-available',
           toolCallId,
@@ -49,10 +44,8 @@ export async function translate(
 
       case 'tool_result': {
         closeText()
-        const key = `${event.agent}::${event.tool}`
-        const queue = pendingByKey.get(key)
-        const toolCallId = queue?.shift() ?? randomUUID()
-        if (queue && queue.length === 0) pendingByKey.delete(key)
+        const toolCallId = event.tool_call_id
+        if (!toolCallId || !seenInputs.has(toolCallId)) break
         if (event.is_error) {
           writer.write({
             type: 'tool-output-error',
@@ -92,8 +85,6 @@ export async function translate(
       }
 
       case 'done': {
-        // Final marker — close any open text block. The writer is closed by the
-        // execute callback returning, not by us.
         closeText()
         break
       }

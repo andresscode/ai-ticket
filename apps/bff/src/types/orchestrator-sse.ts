@@ -9,6 +9,7 @@ export interface ToolCallEvent {
   type: 'tool_call'
   agent: string
   tool: string
+  tool_call_id: string
   args: Record<string, unknown>
 }
 
@@ -16,6 +17,7 @@ export interface ToolResultEvent {
   type: 'tool_result'
   agent: string
   tool: string
+  tool_call_id: string
   result: unknown
   is_error: boolean
 }

@@ -26,6 +26,7 @@ class ToolCallEvent(BaseModel):
     type: Literal["tool_call"] = "tool_call"
     agent: str
     tool: str
+    tool_call_id: str
     args: dict[str, Any]
 
 
@@ -33,6 +34,7 @@ class ToolResultEvent(BaseModel):
     type: Literal["tool_result"] = "tool_result"
     agent: str
     tool: str
+    tool_call_id: str
     result: Any
     is_error: bool = False
 

@@ -8,7 +8,7 @@ from langgraph.types import Command
 from agents.graph import get_or_build_graph
 from config import get_settings
 from models.api import ChatRequest, HitlResumeRequest
-from stream import translate_chunks
+from stream import translate_events
 from tracing import init_tracing
 
 
@@ -34,13 +34,12 @@ async def chat(req: ChatRequest) -> StreamingResponse:
     config = {"configurable": {"thread_id": req.thread_id}}
 
     async def stream():
-        chunks = graph.astream(
+        events = graph.astream_events(
             {"messages": [HumanMessage(content=req.message)]},
             config=config,
-            stream_mode=["messages", "updates"],
-            subgraphs=True,
+            version="v2",
         )
-        async for sse in translate_chunks(chunks, req.thread_id):
+        async for sse in translate_events(events, graph, config, req.thread_id):
             yield sse
 
     return StreamingResponse(stream(), media_type="text/event-stream")
@@ -53,13 +52,12 @@ async def hitl_resume(req: HitlResumeRequest) -> StreamingResponse:
     config = {"configurable": {"thread_id": req.thread_id}}
 
     async def stream():
-        chunks = graph.astream(
+        events = graph.astream_events(
             Command(resume=req.approved),
             config=config,
-            stream_mode=["messages", "updates"],
-            subgraphs=True,
+            version="v2",
         )
-        async for sse in translate_chunks(chunks, req.thread_id):
+        async for sse in translate_events(events, graph, config, req.thread_id):
             yield sse
 
     return StreamingResponse(stream(), media_type="text/event-stream")

@@ -56,7 +56,6 @@ describe('translate', () => {
     }[]
     const end = chunks[4] as { type: 'text-end'; id: string }
 
-    // All deltas + end share the same id as start.
     expect(deltas.every((d) => d.id === start.id)).toBe(true)
     expect(end.id).toBe(start.id)
     expect(deltas.map((d) => d.delta)).toEqual(['Hello', ' ', 'world'])
@@ -74,18 +73,20 @@ describe('translate', () => {
     ])
   })
 
-  it('matches tool_call → tool_result by (agent, tool) FIFO', async () => {
+  it('uses orchestrator-supplied tool_call_id as the AI SDK toolCallId', async () => {
     const chunks = await run([
       {
         type: 'tool_call',
         agent: 'events_agent',
         tool: 'list-events',
+        tool_call_id: 'tc-abc',
         args: { x: 1 },
       },
       {
         type: 'tool_result',
         agent: 'events_agent',
         tool: 'list-events',
+        tool_call_id: 'tc-abc',
         result: { events: [] },
         is_error: false,
       },
@@ -105,9 +106,10 @@ describe('translate', () => {
 
     expect(call.type).toBe('tool-input-available')
     expect(result.type).toBe('tool-output-available')
+    expect(call.toolCallId).toBe('tc-abc')
+    expect(result.toolCallId).toBe('tc-abc')
     expect(call.toolName).toBe('list-events')
     expect(call.input).toEqual({ x: 1 })
-    expect(result.toolCallId).toBe(call.toolCallId)
     expect(result.output).toEqual({ events: [] })
   })
 
@@ -117,12 +119,14 @@ describe('translate', () => {
         type: 'tool_call',
         agent: 'commerce_agent',
         tool: 'create-order',
+        tool_call_id: 'tc-1',
         args: {},
       },
       {
         type: 'tool_result',
         agent: 'commerce_agent',
         tool: 'create-order',
+        tool_call_id: 'tc-1',
         result: 'seat already sold',
         is_error: true,
       },
@@ -137,47 +141,41 @@ describe('translate', () => {
     expect(result.errorText).toBe('seat already sold')
   })
 
-  it('preserves toolCallId mapping when same (agent, tool) is called multiple times', async () => {
+  it('matches calls + results across LangGraph node boundaries via tool_call_id', async () => {
     const chunks = await run([
       {
         type: 'tool_call',
-        agent: 'events_agent',
-        tool: 'get-event',
-        args: { id: 'a' },
-      },
-      {
-        type: 'tool_call',
-        agent: 'events_agent',
-        tool: 'get-event',
-        args: { id: 'b' },
+        agent: 'supervisor',
+        tool: 'transfer_to_events_agent',
+        tool_call_id: 'tc-xfer',
+        args: {},
       },
       {
         type: 'tool_result',
         agent: 'events_agent',
-        tool: 'get-event',
-        result: 'a-result',
-        is_error: false,
-      },
-      {
-        type: 'tool_result',
-        agent: 'events_agent',
-        tool: 'get-event',
-        result: 'b-result',
+        tool: 'transfer_to_events_agent',
+        tool_call_id: 'tc-xfer',
+        result: 'ok',
         is_error: false,
       },
     ])
 
-    const callA = chunks[0] as { toolCallId: string; input: { id: string } }
-    const callB = chunks[1] as { toolCallId: string; input: { id: string } }
-    const resultA = chunks[2] as { toolCallId: string; output: string }
-    const resultB = chunks[3] as { toolCallId: string; output: string }
+    expect(chunks[0]?.toolCallId).toBe('tc-xfer')
+    expect(chunks[1]?.toolCallId).toBe('tc-xfer')
+  })
 
-    expect(callA.toolCallId).not.toBe(callB.toolCallId)
-    // FIFO: first call pairs with first result.
-    expect(resultA.toolCallId).toBe(callA.toolCallId)
-    expect(resultA.output).toBe('a-result')
-    expect(resultB.toolCallId).toBe(callB.toolCallId)
-    expect(resultB.output).toBe('b-result')
+  it('drops tool_result events with no matching tool_call', async () => {
+    const chunks = await run([
+      {
+        type: 'tool_result',
+        agent: 'whatever',
+        tool: 'orphan',
+        tool_call_id: 'tc-missing',
+        result: 'should be ignored',
+        is_error: false,
+      },
+    ])
+    expect(chunks).toEqual([])
   })
 
   it('closes any open text block before emitting a non-token event', async () => {
@@ -187,6 +185,7 @@ describe('translate', () => {
         type: 'tool_call',
         agent: 'events_agent',
         tool: 'list-events',
+        tool_call_id: 'tc-1',
         args: {},
       },
     ])

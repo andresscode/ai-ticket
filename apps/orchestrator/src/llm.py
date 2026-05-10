@@ -55,6 +55,7 @@ EVENTS = ModelProfile(
         "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
         "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
+    defaults={"tags": ["nostream"]},
 )
 
 COMMERCE = ModelProfile(
@@ -62,6 +63,7 @@ COMMERCE = ModelProfile(
         "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
         "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
+    defaults={"tags": ["nostream"]},
 )
 
 PAYMENT = ModelProfile(
@@ -69,4 +71,5 @@ PAYMENT = ModelProfile(
         "openai": ProviderConfig(model=_OPENAI_MODEL, params=_OPENAI_PARAMS),
         "vercel": ProviderConfig(model=_GATEWAY_MODEL),
     },
+    defaults={"tags": ["nostream"]},
 )
