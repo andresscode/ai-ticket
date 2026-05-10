@@ -3,8 +3,10 @@ import { DefaultChatTransport } from 'ai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Confirmation,
+  ConfirmationAccepted,
   ConfirmationAction,
   ConfirmationActions,
+  ConfirmationRejected,
   ConfirmationRequest,
   ConfirmationTitle,
 } from '@/components/ai-elements/confirmation'
@@ -44,7 +46,7 @@ type HitlPhase =
 
 export function ChatView({ session }: { session: SessionPayload }) {
   const transportConfigRef = useRef<TransportConfig>({ mode: 'chat' })
-  const [hitlPhase, setHitlPhase] = useState<HitlPhase | null>(null)
+  const [hitlPhases, setHitlPhases] = useState<Record<string, HitlPhase>>({})
 
   const transport = useMemo(
     () =>
@@ -76,7 +78,8 @@ export function ChatView({ session }: { session: SessionPayload }) {
   })
 
   const isStreaming = status === 'streaming' || status === 'submitted'
-  const inputDisabled = isStreaming || hitlPhase?.status === 'pending'
+  const inputDisabled =
+    isStreaming || Object.values(hitlPhases).some((p) => p.status === 'pending')
 
   const activeHitlData = useMemo<HitlData | null>(() => {
     for (const msg of [...messages].reverse()) {
@@ -89,9 +92,12 @@ export function ChatView({ session }: { session: SessionPayload }) {
 
   useEffect(() => {
     if (!activeHitlData) return
-    if (hitlPhase?.data.payment_id === activeHitlData.payment_id) return
-    setHitlPhase({ status: 'pending', data: activeHitlData })
-  }, [activeHitlData, hitlPhase])
+    if (hitlPhases[activeHitlData.payment_id]) return
+    setHitlPhases((prev) => ({
+      ...prev,
+      [activeHitlData.payment_id]: { status: 'pending', data: activeHitlData },
+    }))
+  }, [activeHitlData, hitlPhases])
 
   useEffect(() => {
     if (status === 'ready' && transportConfigRef.current.mode === 'hitl') {
@@ -99,11 +105,17 @@ export function ChatView({ session }: { session: SessionPayload }) {
     }
   }, [status])
 
-  const handleHitl = (approved: boolean) => {
-    if (!hitlPhase || hitlPhase.status !== 'pending') return
-    setHitlPhase({ status: 'decided', data: hitlPhase.data, approved })
-    transportConfigRef.current = { mode: 'hitl', approved }
-    sendMessage({ text: '' })
+  const handleHitl = (paymentId: string, approved: boolean) => {
+    const phase = hitlPhases[paymentId]
+    if (!phase || phase.status !== 'pending') return
+    setHitlPhases((prev) => ({
+      ...prev,
+      [paymentId]: { status: 'decided', data: phase.data, approved },
+    }))
+    if (approved) {
+      transportConfigRef.current = { mode: 'hitl', approved: true }
+      sendMessage({ text: '' })
+    }
   }
 
   const last = messages.at(-1)
@@ -148,12 +160,20 @@ export function ChatView({ session }: { session: SessionPayload }) {
                           )
                         }
                         if (part.type === 'data-hitl') {
-                          if (hitlPhase?.status === 'decided') return null
+                          const data = part.data as HitlData
+                          const phase = hitlPhases[data.payment_id]
+                          const decision =
+                            phase?.status === 'decided'
+                              ? { approved: phase.approved }
+                              : undefined
                           return (
                             <PaymentConfirmation
                               key={key}
-                              data={part.data as HitlData}
-                              onDecide={handleHitl}
+                              data={data}
+                              decision={decision}
+                              onDecide={(approved) =>
+                                handleHitl(data.payment_id, approved)
+                              }
                             />
                           )
                         }
@@ -284,13 +304,20 @@ function ChatComposer({
 
 function PaymentConfirmation({
   data,
+  decision,
   onDecide,
 }: {
   data: HitlData
+  decision?: { approved: boolean }
   onDecide: (approved: boolean) => void
 }) {
+  const state = decision ? 'output-available' : 'approval-requested'
+  const approval = decision
+    ? { id: data.payment_id, approved: decision.approved }
+    : { id: data.payment_id }
+
   return (
-    <Confirmation state="approval-requested" approval={{ id: data.payment_id }}>
+    <Confirmation state={state} approval={approval}>
       <ConfirmationTitle>
         Confirm payment — {(data.amount_cents / 100).toFixed(2)}{' '}
         {data.currency.toUpperCase()}
@@ -306,6 +333,8 @@ function PaymentConfirmation({
           Pay Now
         </ConfirmationAction>
       </ConfirmationActions>
+      <ConfirmationAccepted>Payment approved</ConfirmationAccepted>
+      <ConfirmationRejected>Payment cancelled.</ConfirmationRejected>
     </Confirmation>
   )
 }
