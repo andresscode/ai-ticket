@@ -34,9 +34,9 @@ import type { CustomUIMessage, HitlData } from '@/types/ui-message'
 import { Shimmer } from './ai-elements/shimmer'
 
 const SAMPLE_PROMPTS = [
-  "What's on this weekend?",
-  'Two seats for the Friday show, near the back.',
-  'Show me the cheapest seats available.',
+  "What's on this week?",
+  'Book two seats for the coming show, near the back.',
+  'Show me the cheapest seats available for the next show.',
 ]
 
 type TransportConfig = { mode: 'chat' } | { mode: 'hitl'; approved: boolean }
