@@ -1,6 +1,13 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Confirmation,
+  ConfirmationAction,
+  ConfirmationActions,
+  ConfirmationRequest,
+  ConfirmationTitle,
+} from '@/components/ai-elements/confirmation'
 import {
   Conversation,
   ConversationContent,
@@ -21,7 +28,7 @@ import {
 } from '@/components/ai-elements/prompt-input'
 import type { SessionPayload } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import type { CustomUIMessage } from '@/types/ui-message'
+import type { CustomUIMessage, HitlData } from '@/types/ui-message'
 import { Shimmer } from './ai-elements/shimmer'
 
 const SAMPLE_PROMPTS = [
@@ -30,13 +37,32 @@ const SAMPLE_PROMPTS = [
   'Show me the cheapest seats available.',
 ]
 
+type TransportConfig = { mode: 'chat' } | { mode: 'hitl'; approved: boolean }
+type HitlPhase =
+  | { status: 'pending'; data: HitlData }
+  | { status: 'decided'; data: HitlData; approved: boolean }
+
 export function ChatView({ session }: { session: SessionPayload }) {
+  const transportConfigRef = useRef<TransportConfig>({ mode: 'chat' })
+  const [hitlPhase, setHitlPhase] = useState<HitlPhase | null>(null)
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport<CustomUIMessage>({
         api: '/api/chat',
         credentials: 'include',
+        fetch: (_, init) => {
+          const url =
+            transportConfigRef.current.mode === 'hitl'
+              ? '/api/hitl/resume'
+              : '/api/chat'
+          return globalThis.fetch(url, init as RequestInit)
+        },
         prepareSendMessagesRequest: ({ messages }) => {
+          const config = transportConfigRef.current
+          if (config.mode === 'hitl') {
+            return { body: { approved: config.approved } }
+          }
           const last = messages[messages.length - 1]
           const text = last?.parts.find((p) => p.type === 'text')?.text ?? ''
           return { body: { message: text } }
@@ -50,6 +76,36 @@ export function ChatView({ session }: { session: SessionPayload }) {
   })
 
   const isStreaming = status === 'streaming' || status === 'submitted'
+  const inputDisabled = isStreaming || hitlPhase?.status === 'pending'
+
+  const activeHitlData = useMemo<HitlData | null>(() => {
+    for (const msg of [...messages].reverse()) {
+      for (const part of msg.parts) {
+        if (part.type === 'data-hitl') return part.data as HitlData
+      }
+    }
+    return null
+  }, [messages])
+
+  useEffect(() => {
+    if (!activeHitlData) return
+    if (hitlPhase?.data.payment_id === activeHitlData.payment_id) return
+    setHitlPhase({ status: 'pending', data: activeHitlData })
+  }, [activeHitlData, hitlPhase])
+
+  useEffect(() => {
+    if (status === 'ready' && transportConfigRef.current.mode === 'hitl') {
+      transportConfigRef.current = { mode: 'chat' }
+    }
+  }, [status])
+
+  const handleHitl = (approved: boolean) => {
+    if (!hitlPhase || hitlPhase.status !== 'pending') return
+    setHitlPhase({ status: 'decided', data: hitlPhase.data, approved })
+    transportConfigRef.current = { mode: 'hitl', approved }
+    sendMessage({ text: '' })
+  }
+
   const last = messages.at(-1)
   const showThinking =
     isStreaming && (!last || last.role === 'user' || last.parts.length === 0)
@@ -65,36 +121,47 @@ export function ChatView({ session }: { session: SessionPayload }) {
             />
           ) : (
             <>
-              {messages.map((message) => (
-                <Message
-                  from={message.role}
-                  key={message.id}
-                  className="not-first:mt-6"
-                >
-                  <MessageContent className="gap-2">
-                    {message.parts.map((part, idx) => {
-                      const key = `${message.id}-${idx}`
-                      if (part.type === 'text') {
-                        return (
-                          <MessageResponse key={key}>
-                            {part.text}
-                          </MessageResponse>
-                        )
-                      }
-                      if (part.type === 'data-hitl') {
-                        return (
-                          <HitlPlaceholder
-                            key={key}
-                            amount={part.data.amount_cents}
-                            currency={part.data.currency}
-                          />
-                        )
-                      }
-                      return null
-                    })}
-                  </MessageContent>
-                </Message>
-              ))}
+              {messages
+                .filter(
+                  (msg) =>
+                    !(
+                      msg.role === 'user' &&
+                      msg.parts.every(
+                        (p) => p.type === 'text' && p.text.trim() === '',
+                      )
+                    ),
+                )
+                .map((message) => (
+                  <Message
+                    from={message.role}
+                    key={message.id}
+                    className="not-first:mt-6"
+                  >
+                    <MessageContent className="gap-2">
+                      {message.parts.map((part, idx) => {
+                        const key = `${message.id}-${idx}`
+                        if (part.type === 'text') {
+                          return (
+                            <MessageResponse key={key}>
+                              {part.text}
+                            </MessageResponse>
+                          )
+                        }
+                        if (part.type === 'data-hitl') {
+                          if (hitlPhase?.status === 'decided') return null
+                          return (
+                            <PaymentConfirmation
+                              key={key}
+                              data={part.data as HitlData}
+                              onDecide={handleHitl}
+                            />
+                          )
+                        }
+                        return null
+                      })}
+                    </MessageContent>
+                  </Message>
+                ))}
               {showThinking && (
                 <Message
                   from="assistant"
@@ -119,7 +186,7 @@ export function ChatView({ session }: { session: SessionPayload }) {
       </Conversation>
 
       <ChatComposer
-        disabled={isStreaming}
+        disabled={inputDisabled}
         onSend={(text) => sendMessage({ text })}
       />
     </div>
@@ -215,18 +282,31 @@ function ChatComposer({
   )
 }
 
-function HitlPlaceholder({
-  amount,
-  currency,
+function PaymentConfirmation({
+  data,
+  onDecide,
 }: {
-  amount: number
-  currency: string
+  data: HitlData
+  onDecide: (approved: boolean) => void
 }) {
   return (
-    <div className="font-italic border-foreground/20 rounded-md border-2 border-dashed p-4 text-sm italic opacity-70">
-      Payment confirmation pending — {(amount / 100).toFixed(2)}{' '}
-      {currency.toUpperCase()}. (Wired up in Phase 5.)
-    </div>
+    <Confirmation state="approval-requested" approval={{ id: data.payment_id }}>
+      <ConfirmationTitle>
+        Confirm payment — {(data.amount_cents / 100).toFixed(2)}{' '}
+        {data.currency.toUpperCase()}
+      </ConfirmationTitle>
+      <ConfirmationRequest>
+        <p className="text-muted-foreground text-sm">Order #{data.order_id}</p>
+      </ConfirmationRequest>
+      <ConfirmationActions>
+        <ConfirmationAction variant="outline" onClick={() => onDecide(false)}>
+          Cancel
+        </ConfirmationAction>
+        <ConfirmationAction onClick={() => onDecide(true)}>
+          Pay Now
+        </ConfirmationAction>
+      </ConfirmationActions>
+    </Confirmation>
   )
 }
 
